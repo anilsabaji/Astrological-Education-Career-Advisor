@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% block title %}Advice for {{ birth.name }} - Astro Adviser{% endblock %}
+{% block content %}
+
+{% macro varga_block(v, summary, kind) %}
+{% if v %}
+<h3>Divisional chart analysis &mdash; {{ v.name }}</h3>
+<div class="varga">
+    <div class="varga-head">
+        <div class="vk"><span>Varga Lagna</span><b>{{ v.asc_sign }}</b><small>lord {{ v.asc_lord }}</small></div>
+        {% if kind == 'career' %}
+        <div class="vk"><span>10th (profession)</span><b>{{ v.focus_sign }}</b><small>lord {{ v.focus_lord }}</small></div>
+        <div class="vk"><span>Planets in 10th</span><b>{{ v.planets_in_focus|join(', ') or '&mdash;'|safe }}</b></div>
+        {% else %}
+        <div class="vk"><span>Mercury</span><b>H{{ v.key_placements['Mercury'] }}</b><small>intellect</small></div>
+        <div class="vk"><span>Jupiter</span><b>H{{ v.key_placements['Jupiter'] }}</b><small>wisdom</small></div>
+        {% endif %}
+        <div class="vk"><span>Varga strength</span><b>{{ (v.strength * 100)|round|int }}%</b></div>
+    </div>
+    {% if v.vargottama %}
+    <p class="vargottama">&#11088; Vargottama (extra-strong, same sign in D-1 &amp; D-9):
+        <strong>{{ v.vargottama|join(', ') }}</strong></p>
+    {% endif %}
+    <p class="varga-summary">{{ summary }}</p>
+    <ul class="varga-notes">{% for n in v.notes %}<li>{{ n }}</li>{% endfor %}</ul>
+    <p class="varga-fields">Fields reinforced by this varga:
+        <strong>{{ v.field_planets|join(', ') }}</strong></p>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro remedy_block(remedies) %}
+{% if remedies %}
+<h3>Remedial suggestions (upaya)</h3>
+<div class="remedy-list">
+    {% for r in remedies %}
+    <div class="remedy">
+        <div class="rem-head"><b>{{ r.planet }}</b><span>{{ r.reason }}</span></div>
+        <div class="rem-body">
+            <span><em>Deity:</em> {{ r.measures.deity }}</span>
+            <span><em>Mantra:</em> {{ r.measures.mantra }}</span>
+            <span><em>Charity:</em> {{ r.measures.charity }}</span>
+            <span><em>Day:</em> {{ r.measures.day }}</span>
+            <span><em>Gemstone:</em> {{ r.measures.gem }}</span>
+            <span><em>Lifestyle:</em> {{ r.measures.lifestyle }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<p class="disclaimer">Gemstones should be worn only after consulting a qualified
+astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
+{% endif %}
+{% endmacro %}
+
+{% macro planet_table(rows) %}
+<table class="planet-table">
+    <thead><tr>
+        <th>Planet</th><th>Sign</th><th>Deg</th><th>H</th>
+        <th>Nakshatra</th><th>Pada</th><th>Star</th><th>Sub</th>
+        <th>D-9</th><th>D-10</th><th>D-24</th>
+    </tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr>
+        <td>{{ r.name }} {{ r.retro }}</td><td>{{ r.sign }}</td><td>{{ r.deg }}</td>
+        <td>{{ r.house }}</td><td>{{ r.nak }}</td><td>{{ r.pada }}</td>
+        <td>{{ r.star }}</td><td>{{ r.sub }}</td>
+        <td>{{ r.navamsa }}</td><td>{{ r.dasamsa }}</td><td>{{ r.siddhamsa }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
+<section class="report-head">
+    <h1>Advice for {{ birth.name }}</h1>
+    <p class="meta">
+        Born {{ birth.date }} at {{ "%02d:%02d"|format(birth.time.hour, birth.time.minute) }}
+        &middot; {{ birth.place }} &middot; UTC{{ "%+g"|format(birth.tz_offset_hours) }}
+    </p>
+    <p class="meta">
+        <strong>KP Lagna:</strong> {{ kp_asc.sign }} ({{ kp_ascdeg }}&deg;), sub-lord {{ kp_asc.sub_lord }}
+        &nbsp;|&nbsp;
+        <strong>Parashara Lagna:</strong> {{ par_asc.sign }} ({{ par_ascdeg }}&deg;)
+    </p>
+    <a class="back" href="/">&larr; New chart</a>
+</section>
+
+<!-- Running dasha -->
+<section class="card dasha-now">
+    <h2>Current Vimshottari Dasha (3 levels)</h2>
+    <div class="dasha-chips">
+        <div class="chip md"><span>Mahadasha</span><b>{{ rep.current.md }}</b><small>{{ rep.current.md_period }}</small></div>
+        <div class="chip ad"><span>Antardasha</span><b>{{ rep.current.ad }}</b><small>{{ rep.current.ad_period }}</small></div>
+        <div class="chip pd"><span>Pratyantardasha</span><b>{{ rep.current.pd }}</b><small>{{ rep.current.pd_period }}</small></div>
+    </div>
+    <h3>Upcoming Mahadashas</h3>
+    <div class="timeline-bar">
+        {% for md in upcoming %}
+        <div class="tl-seg">
+            <b>{{ md.lord }}</b>
+            <small>{{ md.start.date() }} &ndash; {{ md.end.date() }}</small>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Transit triggers -->
+<section class="card transit">
+    <h2>&#127756; Transit (Gochar) Triggers <small class="asof">as of {{ rep.transit.as_of }}</small></h2>
+    <p class="sub">Dashas show what is promised; these slow-planet transits confirm
+    when results mature.</p>
+    <div class="transit-grid">
+        {% for p, t in rep.transit.positions.items() %}
+        <div class="tr-card">
+            <b>{{ p }}</b>
+            <span>{{ t.sign }}</span>
+            <small>{{ t.house_from_lagna }}H from Lagna &middot; {{ t.house_from_moon }}H from Moon</small>
+        </div>
+        {% endfor %}
+    </div>
+    <ul class="trigger-list">
+        <li><strong>Education:</strong> {{ rep.transit.education_trigger }}</li>
+        <li><strong>Career:</strong> {{ rep.transit.career_trigger }}</li>
+        <li><strong>Saturn / Moon:</strong> {{ rep.transit.sade_sati }}</li>
+        {% for n in rep.transit.notes %}<li>{{ n }}</li>{% endfor %}
+    </ul>
+</section>
+
+<!-- EDUCATION -->
+<section class="card edu">
+    <h2>&#127891; Education Guidance</h2>
+    <div class="verdict-row">
+        <span class="badge {{ 'good' if rep.education.promised else 'warn' }}">
+            Education promise: {{ 'Strong' if rep.education.promised else 'Moderate' }}
+        </span>
+        <span class="badge {{ 'good' if rep.education.higher_education_likely else 'warn' }}">
+            Higher education: {{ 'Likely' if rep.education.higher_education_likely else 'With effort' }}
+        </span>
+        <span class="badge info">{{ rep.education.strength_summary }}</span>
+    </div>
+
+    <h3>Recommended streams</h3>
+    <ol class="reco-list">
+        {% for r in rep.education.streams %}
+        <li>
+            <div class="reco-title">{{ r.title }}</div>
+            <div class="reco-meta">drivers: {{ r.drivers|join(', ') }} &middot; weight {{ r.score }}</div>
+            <div class="bar"><span style="width: {{ (r.score / rep.education.streams[0].score * 100)|round }}%"></span></div>
+        </li>
+        {% endfor %}
+    </ol>
+
+    <div class="two-col">
+        <div>
+            <h4>KP basis</h4>
+            <ul>{% for n in rep.education.kp_notes %}<li>{{ n }}</li>{% endfor %}</ul>
+        </div>
+        <div>
+            <h4>Parashara basis</h4>
+            <ul>{% for n in rep.education.par_notes %}<li>{{ n }}</li>{% endfor %}</ul>
+            {% if rep.education.yogas %}
+            <p class="yoga-line">Education yogas: {{ rep.education.yogas|join(', ') }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {{ varga_block(rep.education.varga, rep.education.varga_summary, 'education') }}
+    {{ remedy_block(rep.edu_remedies) }}
+</section>
+
+<!-- CAREER -->
+<section class="card career">
+    <h2>&#128188; Career Guidance</h2>
+    <div class="verdict-row">
+        <span class="badge good">{{ rep.career.earning_rating }}</span>
+        <span class="badge good">Satisfaction: {{ rep.career.satisfaction_rating }}</span>
+    </div>
+    <p class="lean"><strong>Job vs Business:</strong> {{ rep.career.job_vs_business }}</p>
+
+    <h3>Recommended career fields (earning + satisfaction)</h3>
+    <ol class="reco-list">
+        {% for r in rep.career.fields %}
+        <li>
+            <div class="reco-title">{{ r.title }}</div>
+            <div class="reco-meta">drivers: {{ r.drivers|join(', ') }} &middot; weight {{ r.score }}</div>
+            <div class="bar"><span style="width: {{ (r.score / rep.career.fields[0].score * 100)|round }}%"></span></div>
+        </li>
+        {% endfor %}
+    </ol>
+
+    <div class="two-col">
+        <div>
+            <h4>Earning</h4>
+            <p>{{ rep.career.earning_explanation }}</p>
+        </div>
+        <div>
+            <h4>Satisfaction</h4>
+            <p>{{ rep.career.satisfaction_explanation }}</p>
+        </div>
+    </div>
+    <div class="two-col">
+        <div>
+            <h4>KP notes</h4>
+            <ul>{% for n in rep.career.kp_notes %}<li>{{ n }}</li>{% endfor %}</ul>
+        </div>
+        <div>
+            <h4>Parashara notes</h4>
+            <ul>{% for n in rep.career.par_notes %}<li>{{ n }}</li>{% endfor %}</ul>
+            {% if rep.career.yogas %}
+            <p class="yoga-line">Career yogas: {{ rep.career.yogas|join(', ') }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {{ varga_block(rep.career.varga, rep.career.varga_summary, 'career') }}
+    {{ remedy_block(rep.career_remedies) }}
+</section>
+
+<!-- FAQ -->
+<section class="card faq">
+    <h2>&#10067; Frequently Asked Questions</h2>
+    <p class="sub">Each answer combines the KP promise with the 3-level Vimshottari
+    dasha timing.</p>
+    {% for a in rep.faqs %}
+    <details class="faq-item">
+        <summary>
+            <span class="q">{{ a.question }}</span>
+            <span class="v">{{ a.verdict }}</span>
+        </summary>
+        <div class="faq-body">
+            <p>{{ a.summary }}</p>
+            {% if a.timeline %}
+            <table class="tl-table">
+                <thead><tr><th>Dasha (MD-AD-PD)</th><th>From</th><th>To</th><th>Why</th></tr></thead>
+                <tbody>
+                {% for w in a.timeline %}
+                <tr>
+                    <td class="chain">{{ w.chain }}</td>
+                    <td>{{ w.start.date() }}</td>
+                    <td>{{ w.end.date() }}</td>
+                    <td class="why">{{ w.note }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="muted">No clear dasha window within the look-ahead horizon.</p>
+            {% endif %}
+            <div class="basis">
+                <p><strong>KP:</strong> {{ a.kp_basis }}</p>
+                <p><strong>Parashara:</strong> {{ a.parashara_basis }}</p>
+            </div>
+        </div>
+    </details>
+    {% endfor %}
+</section>
+
+<!-- CHARTS -->
+<section class="card charts">
+    <h2>&#128302; Planetary Positions</h2>
+    <div class="chart-tables">
+        <div>
+            <h3>KP chart (Krishnamurti / Placidus)</h3>
+            {{ planet_table(kp_rows) }}
+        </div>
+        <div>
+            <h3>Parashara chart (Lahiri / whole-sign)</h3>
+            {{ planet_table(par_rows) }}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

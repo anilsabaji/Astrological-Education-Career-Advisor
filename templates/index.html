@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Astro Adviser - Education &amp; Career Guidance{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Find your right education &amp; career path</h1>
+    <p>An astrological adviser that reads your birth chart with <strong>both the KP
+    (Krishnamurti Paddhati) and Parashara</strong> systems, and times results with
+    <strong>3-level Vimshottari dashas</strong> (Mahadasha &rarr; Antardasha &rarr;
+    Pratyantardasha). Get field recommendations for good <em>earning</em> and
+    <em>satisfaction</em>, plus answers to the questions most often asked of an
+    astrologer.</p>
+</section>
+
+<section class="card form-card">
+    <h2>Enter birth details</h2>
+    <form method="post" action="/report" class="grid-form">
+        <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your name" value="Seeker">
+        </div>
+        <div class="field">
+            <label for="dob">Date of birth</label>
+            <input type="date" id="dob" name="dob" required value="1990-08-15">
+        </div>
+        <div class="field">
+            <label for="tob">Time of birth (24h, local)</label>
+            <input type="time" id="tob" name="tob" required value="10:30">
+        </div>
+        <div class="field">
+            <label for="city">City (quick pick)</label>
+            <select id="city" name="city">
+                <option value="">-- choose, or enter coordinates below --</option>
+                {% for c in cities %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <fieldset class="coords">
+            <legend>Or enter exact coordinates</legend>
+            <div class="field">
+                <label for="latitude">Latitude</label>
+                <input type="text" id="latitude" name="latitude" placeholder="28.6139">
+            </div>
+            <div class="field">
+                <label for="longitude">Longitude</label>
+                <input type="text" id="longitude" name="longitude" placeholder="77.2090">
+            </div>
+            <div class="field">
+                <label for="tz">Timezone offset (hrs from UTC)</label>
+                <input type="text" id="tz" name="tz" placeholder="5.5">
+            </div>
+        </fieldset>
+
+        <div class="actions">
+            <button type="submit">Generate advice &rarr;</button>
+        </div>
+    </form>
+    <p class="hint">Tip: choose a city for an instant timezone &amp; coordinates,
+    or type your own latitude/longitude and UTC offset for precision.</p>
+</section>
+
+<section class="card features">
+    <h2>What you get</h2>
+    <ul class="feature-list">
+        <li><strong>Education advice</strong> - streams suited to your chart's 4th,
+            5th &amp; 9th houses and the learning karakas Mercury &amp; Jupiter.</li>
+        <li><strong>Career advice</strong> - fields balancing earning and
+            satisfaction, with a job-vs-business verdict agreed by KP and Parashara.</li>
+        <li><strong>Dasha timeline</strong> - 3-level Vimshottari windows for when
+            results are likely to fructify.</li>
+        <li><strong>FAQ answers</strong> - the common education &amp; career
+            questions, each with a verdict and timing.</li>
+    </ul>
+</section>
+{% endblock %}

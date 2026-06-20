@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Astro Adviser{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="/">
+                <span class="logo">&#9789;</span>
+                Astro Adviser
+            </a>
+            <span class="tagline">Education &amp; Career &middot; KP + Parashara &middot; Vimshottari Dasha</span>
+        </div>
+    </header>
+    <main class="wrap">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">
+        <div class="wrap">
+            <p>Computed with the Swiss Ephemeris (sidereal). KP uses the Krishnamurti
+            ayanamsa with Placidus cusps; Parashara uses the Lahiri ayanamsa with
+            whole-sign houses. For guidance and self-reflection only.</p>
+        </div>
+    </footer>
+</body>
+</html>
