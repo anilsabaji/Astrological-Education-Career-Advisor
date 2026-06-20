@@ -13,6 +13,26 @@ astrologer**, each with a verdict and a dasha-based timeline.
 
 ---
 
+## Try it in your browser (no install)
+
+A fully self-contained, client-side edition lives in **[`docs/index.html`](docs/index.html)**.
+It runs entirely in the browser (positions via the astronomy-engine model,
+matching Swiss Ephemeris to ~0.004°), has tabs for **Overview/Dasha, Education,
+Career, FAQ and Charts**, and a **Print / Save PDF** button that produces a
+colourful PDF report.
+
+**Live link (GitHub Pages):**
+`https://anilsabaji.github.io/Astrological-Education-Career-Advisor/`
+
+To enable the live link once: open the repo on GitHub → **Settings → Pages** →
+under *Build and deployment* set **Source: Deploy from a branch**, **Branch:
+`main` / `/docs`**, then **Save**. The URL above goes live in a minute or two.
+
+The browser edition is rebuilt from the sources in [`standalone/`](standalone/)
+(`npm install && npm run build`). Rahu/Ketu there use the mean lunar node.
+
+---
+
 ## What it does
 
 | Area | KP technique | Parashara technique |

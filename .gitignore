@@ -21,3 +21,6 @@ htmlcov/
 *.swp
 .idea/
 .vscode/
+
+# Node
+node_modules/
