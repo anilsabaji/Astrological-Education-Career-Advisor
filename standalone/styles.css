@@ -93,6 +93,11 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 .sb-table{font-size:.8rem;}
 .sb-table td.ok{color:var(--good);font-weight:600;}
 .sb-table td.low{color:var(--warn);font-weight:600;}
+.tl-table td.pg{color:var(--good);font-weight:600;}
+.tl-table td.pb{color:var(--bad);font-weight:600;}
+.tl-table td.pm{color:var(--warn);font-weight:600;}
+.ishta-rank{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;}
+.ishta-chip{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:.85rem;color:var(--accent);font-weight:600;}
 
 /* faq */
 .faq-item{border:1px solid var(--line);border-radius:11px;margin:10px 0;background:var(--card2);overflow:hidden;}

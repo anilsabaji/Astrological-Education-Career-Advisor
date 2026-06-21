@@ -69,7 +69,23 @@ function renderOverview(rep){
     </div>
     <h3>Upcoming Mahadashas</h3><div class="timeline-bar">`;
   rep.upcoming.forEach(md=>{h+=`<div class="tl-seg"><b>${md.lord}</b><small>${fmt(md.start)} &ndash; ${fmt(md.end)}</small></div>`;});
-  h+=`</div></div>`;
+  h+=`</div>`;
+  // Ishta/Kashta dasha-phala timeline.
+  if(rep.phala){
+    h+=`<h3>Ishta / Kashta Dasha-Phala Timeline</h3>
+      <p class="muted">Which periods are likely benefic vs challenging, from each dasha lord's Ishta/Kashta phala.</p>
+      <table class="tl-table"><thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Ishta</th><th>Kashta</th><th>Verdict</th></tr></thead><tbody>`;
+    rep.phala.mahadasha.forEach(e=>{const cls=e.verdict.toLowerCase().includes("benefic")?"pg":e.verdict.toLowerCase().includes("challeng")?"pb":"pm";
+      h+=`<tr><td class="chain">${e.lord}</td><td>${e.start}</td><td>${e.end}</td><td>${e.ishta!=null?e.ishta:"-"}</td><td>${e.kashta!=null?e.kashta:"-"}</td><td class="${cls}">${esc(e.verdict)}</td></tr>`;});
+    h+=`</tbody></table>`;
+    if(rep.phala.antardasha.length){
+      h+=`<h4>Antardashas within the current Mahadasha</h4><table class="tl-table"><thead><tr><th>Period</th><th>From</th><th>To</th><th>Verdict</th></tr></thead><tbody>`;
+      rep.phala.antardasha.forEach(e=>{const cls=e.verdict.toLowerCase().includes("benefic")?"pg":e.verdict.toLowerCase().includes("challeng")?"pb":"pm";
+        h+=`<tr><td class="chain">${esc(e.lord)}</td><td>${e.start}</td><td>${e.end}</td><td class="${cls}">${esc(e.verdict)}</td></tr>`;});
+      h+=`</tbody></table>`;
+    }
+  }
+  h+=`</div>`;
   const t=rep.transit;
   h+=`<div class="card"><h2>&#127756; Transit (Gochar) Triggers <small class="muted">as of ${t.asOf}</small></h2>
     <p class="muted">Dashas show what is promised; these slow-planet transits confirm when results mature.</p>
@@ -164,6 +180,15 @@ function renderShadbala(rep){const sb=rep.shadbala;if(!sb)return "";
       <td class="${s.benefic?'ok':'low'}">${s.benefic?'Ishta':'Kashta'}</td>
       <td>${esc(s.motion)}</td><td>${Math.abs(s.declination).toFixed(1)}&deg;${s.declination>=0?'N':'S'}</td></tr>`;});
   return h+`</tbody></table>
+    <h3>Ishta-Phala ranking (benefic-result potential)</h3>
+    <div class="ishta-rank">${(rep.ishtaRank||[]).map((p,i)=>`<span class="ishta-chip">${i+1}. ${p}</span>`).join("")}</div>
+    <h3>Bhava Bala &mdash; House Strengths</h3>
+    <p class="muted">Strength of each bhava in rupas, led by the Bhavadhipati Bala (Shadbala of the house lord).
+    Education houses are 4/5/9; career houses 2/10/11.</p>
+    <table class="planet-table sb-table"><thead><tr><th>House</th><th>Lord</th><th>Bhavadhipati</th><th>Occupant</th><th>Aspect</th><th>Rupas</th></tr></thead><tbody>`
+    +(rep.bhavaBala?rep.bhavaBala.ranking.map(hh=>{const s=rep.bhavaBala.houses[hh];
+      return `<tr><td>House ${s.house}</td><td>${s.lord}</td><td>${s.bhavadhipati}</td><td>${s.occupant}</td><td>${s.drishti}</td><td><b>${s.rupas}</b></td></tr>`;}).join(""):"")
+    +`</tbody></table>
     <p class="disclaimer">Computed for the seven classical grahas (Rahu/Ketu have no Shadbala). Browser edition:
     Cheshta uses speed/retrogression and Ayana uses declination; sunrise-based Kala sub-balas may differ slightly from the server build.</p></div>`;}
 

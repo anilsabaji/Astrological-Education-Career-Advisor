@@ -506,3 +506,105 @@ def status_line(sb: ShadbalaResult, planet: str) -> str:
             f"({'sufficient' if ps.sufficient else 'below'} the {ps.required} "
             f"required), {'Ishta/benefic' if ps.benefic else 'Kashta/strained'}; "
             f"{ps.motion}; declination {abs(ps.declination):.1f}\u00b0{decl_dir}.")
+
+
+# ---------------------------------------------------------------------------
+# Bhava Bala (house strengths) and Ishta/Kashta phala timeline
+# ---------------------------------------------------------------------------
+_HOUSE_ASPECTS = {C.MARS: [4, 8], C.JUPITER: [5, 9], C.SATURN: [3, 10]}
+
+
+@dataclass
+class BhavaStrength:
+    house: int
+    lord: str
+    bhavadhipati: float       # Shadbala of the house lord (virupa)
+    occupant: float           # contribution of occupying planets (virupa)
+    drishti: float            # net benefic - malefic aspect on the bhava
+    total_virupa: float
+    rupas: float
+
+
+@dataclass
+class BhavaBalaResult:
+    houses: Dict[int, BhavaStrength]
+    ranking: List[int]        # strongest -> weakest house
+
+    def rupas(self, house: int) -> float:
+        return self.houses[house].rupas
+
+    def group_strength(self, houses: List[int]) -> float:
+        return sum(self.houses[h].rupas for h in houses) / len(houses)
+
+
+def _bhava_drishti(chart: Chart, house: int) -> float:
+    """Net aspect on a bhava: benefics +20, malefics -20 (full/special aspects)."""
+    val = 0.0
+    for other in SB_PLANETS:
+        oh = chart.planets[other].house
+        rel = (house - oh) % 12 + 1
+        if rel == 1:
+            continue                       # occupancy handled separately
+        aspects = [7] + _HOUSE_ASPECTS.get(other, [])
+        if rel in aspects:
+            val += 20.0 if other in NAT_BENEFIC else -20.0
+    return val
+
+
+def compute_bhava_bala(chart: Chart, sb: ShadbalaResult) -> BhavaBalaResult:
+    """
+    A practical Bhava Bala composite emphasising the classical Bhavadhipati Bala
+    (strength of the house lord) plus the bhava's aspect balance and the
+    Shadbala of any occupants. Returned in rupas, with a house ranking.
+    """
+    houses: Dict[int, BhavaStrength] = {}
+    for h in range(1, 13):
+        lord = chart.lord_of_house(h)
+        bhavadhipati = sb.planets[lord].total_virupa if lord in sb.planets else 300.0
+        # Occupants add a modest bonus (not their full strength) so the house
+        # lord's Shadbala (Bhavadhipati Bala) remains the dominant term.
+        occ = 0.10 * sum(sb.planets[p.name].total_virupa
+                         for p in chart.planets_in_house(h) if p.name in sb.planets)
+        drishti = _bhava_drishti(chart, h)
+        total = bhavadhipati + occ + drishti
+        houses[h] = BhavaStrength(
+            house=h, lord=lord, bhavadhipati=round(bhavadhipati, 1),
+            occupant=round(occ, 1), drishti=round(drishti, 1),
+            total_virupa=round(total, 1), rupas=round(total / 60.0, 2),
+        )
+    ranking = sorted(houses, key=lambda h: -houses[h].rupas)
+    return BhavaBalaResult(houses=houses, ranking=ranking)
+
+
+def house_strength_label(rupas: float) -> str:
+    if rupas >= 9.0:
+        return "very strong"
+    if rupas >= 7.0:
+        return "strong"
+    if rupas >= 5.0:
+        return "moderate"
+    return "weak"
+
+
+def period_phala(sb: ShadbalaResult, lord: str):
+    """
+    Ishta/Kashta verdict for a dasha lord's period.
+    Returns (ishta, kashta, verdict). Nodes (no Shadbala) -> variable.
+    """
+    ps = sb.planets.get(lord)
+    if ps is None:
+        return None, None, "Variable (node - acts via its dispositor)"
+    if ps.ishta >= ps.kashta and ps.ishta >= 40:
+        verdict = "Strongly benefic"
+    elif ps.ishta >= ps.kashta:
+        verdict = "Benefic / supportive"
+    elif ps.kashta - ps.ishta > 15:
+        verdict = "Challenging"
+    else:
+        verdict = "Mixed"
+    return ps.ishta, ps.kashta, verdict
+
+
+def ishta_ranking(sb: ShadbalaResult) -> List[str]:
+    """Planets ordered by Ishta phala (benefic-result potential)."""
+    return sorted(sb.planets, key=lambda p: -sb.planets[p].ishta)

@@ -98,3 +98,58 @@ def test_advice_uses_shadbala(kp_chart, par_chart):
     assert ca.shadbala is res and ca.shadbala_notes
     # every note references Shadbala rupas
     assert all("rupas" in n or "strongest" in n for n in ca.shadbala_notes)
+
+
+def test_bhava_bala(par_chart):
+    res = sb.compute_shadbala(par_chart)
+    bb = sb.compute_bhava_bala(par_chart, res)
+    assert len(bb.houses) == 12
+    assert len(bb.ranking) == 12
+    for h in range(1, 13):
+        s = bb.houses[h]
+        assert s.lord in C.PLANETS
+        assert 2.0 <= s.rupas <= 16.0
+        # bhavadhipati equals the house lord's total Shadbala
+        assert abs(s.bhavadhipati - res.planets[s.lord].total_virupa) < 0.2
+    # ranking sorted by rupas descending
+    rupas = [bb.houses[h].rupas for h in bb.ranking]
+    assert rupas == sorted(rupas, reverse=True)
+
+
+def test_group_strength_and_label(par_chart):
+    res = sb.compute_shadbala(par_chart)
+    bb = sb.compute_bhava_bala(par_chart, res)
+    edu = bb.group_strength([4, 5, 9])
+    car = bb.group_strength([2, 10, 11])
+    assert edu > 0 and car > 0
+    assert sb.house_strength_label(9.5) == "very strong"
+    assert sb.house_strength_label(7.5) == "strong"
+    assert sb.house_strength_label(5.5) == "moderate"
+    assert sb.house_strength_label(3.0) == "weak"
+
+
+def test_period_phala_and_ishta_ranking(par_chart):
+    res = sb.compute_shadbala(par_chart)
+    ishta, kashta, verdict = sb.period_phala(res, C.JUPITER)
+    assert ishta is not None and verdict
+    # nodes have no shadbala -> variable verdict
+    _, _, node_verdict = sb.period_phala(res, C.RAHU)
+    assert "Variable" in node_verdict
+    rank = sb.ishta_ranking(res)
+    assert set(rank) == set(sb.SB_PLANETS)
+    ishtas = [res.planets[p].ishta for p in rank]
+    assert ishtas == sorted(ishtas, reverse=True)
+
+
+def test_report_has_bhava_and_phala():
+    import datetime as dt
+    from astro_adviser.adviser import BirthData, build_report, report_to_dict
+    b = BirthData(name="R", date=dt.date(1990, 8, 15), time=dt.time(10, 30),
+                  latitude=28.6139, longitude=77.2090, tz_offset_hours=5.5)
+    rep = build_report(b, now=dt.datetime(2026, 6, 20))
+    assert rep.bhava_bala is not None
+    assert rep.phala_timeline["mahadasha"]
+    d = report_to_dict(rep)
+    assert d["bhava_bala"]["ranking"]
+    assert d["phala_timeline"]["mahadasha"]
+    assert d["ishta_ranking"]

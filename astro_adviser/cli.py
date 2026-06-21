@@ -100,6 +100,24 @@ def main(argv=None):
                   f"{('yes' if s.sufficient else 'no'):>5} "
                   f"{('Ishta' if s.benefic else 'Kashta'):>6} {s.motion:<28} {decl}")
 
+    if rep.bhava_bala:
+        _print_header("BHAVA BALA (HOUSE STRENGTHS)")
+        for h in rep.bhava_bala.ranking:
+            s = rep.bhava_bala.houses[h]
+            print(f"  House {s.house:<2} (lord {s.lord:8}): {s.rupas:5} rupas")
+
+    if rep.phala_timeline:
+        _print_header("ISHTA / KASHTA DASHA-PHALA TIMELINE")
+        print("  Upcoming Mahadashas (benefic vs challenging periods):")
+        for e in rep.phala_timeline["mahadasha"]:
+            ik = (f"Ishta {e['ishta']} / Kashta {e['kashta']}"
+                  if e["ishta"] is not None else "node")
+            print(f"    {e['lord']:8} {e['start']} to {e['end']}  [{ik}]  {e['verdict']}")
+        if rep.phala_timeline["antardasha"]:
+            print("  Antardashas within the current Mahadasha:")
+            for e in rep.phala_timeline["antardasha"]:
+                print(f"    {e['lord']:18} {e['start']} to {e['end']}  {e['verdict']}")
+
     _print_header("TRANSIT (GOCHAR) TRIGGERS")
     print(f"  As of {rep.transit.as_of}")
     for p, t in rep.transit.positions.items():

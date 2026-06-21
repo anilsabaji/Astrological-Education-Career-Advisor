@@ -42,7 +42,8 @@ The browser edition is rebuilt from the sources in [`standalone/`](standalone/)
 | **Earning** | 2nd, 11th significators + 11th CSL | 2nd & 11th lords, Jupiter/Venus strength, Dhana yoga |
 | **Satisfaction** | — | Alignment of 5th & 9th lords + dignity of career planets |
 | **Planetary strength** | — | **Shadbala** (six-fold strength), with motional speed, direction (retrograde) & declination |
-| **Timing** | Vimshottari dasha of the strong significators (majority of MD/AD/PD) | Cross-checked with karaka sub-periods |
+| **House strength** | — | **Bhava Bala** for the education (4/5/9) and career (2/10/11) houses |
+| **Timing** | Vimshottari dasha of the strong significators (majority of MD/AD/PD) | Cross-checked with karaka sub-periods + **Ishta/Kashta dasha-phala timeline** |
 
 ### Shadbala (six-fold strength)
 The assessment weighs every contributing planet by its **Shadbala** — the classical
@@ -54,6 +55,13 @@ total (in *rupas*), whether it meets its required minimum, its **Ishta/Kashta**
 **declination** are reported and folded into the education and career judgement:
 stronger, Ishta, well-moving planets pull their fields up; weak or Kashta planets
 are discounted, and the strongest planet's periods are highlighted.
+
+**Bhava Bala** (house strength, led by the Bhavadhipati Bala — the Shadbala of
+the house lord) ranks all 12 bhavas; the education (4/5/9) and career (2/10/11)
+house groups are summarised in the assessment. An **Ishta/Kashta dasha-phala
+timeline** annotates the running and upcoming Mahadashas (and the current
+Mahadasha's Antardashas) as benefic, mixed or challenging, so you can see which
+periods are most favourable.
 
 ### Divisional charts (Vargas)
 Fine judgement uses the divisional charts, not just the rasi (D-1):
@@ -147,7 +155,7 @@ curl "http://localhost:8000/api/faq/when_job?dob=1990-08-15&tob=10:30&latitude=2
 ## Tests
 
 ```bash
-python -m pytest        # 68 tests: dasha, sub-lords, dignities, vargas, shadbala, KP, advice, FAQ, transits, API
+python -m pytest        # 72 tests: dasha, sub-lords, dignities, vargas, shadbala, bhava bala, KP, advice, FAQ, transits, API
 ```
 
 ---

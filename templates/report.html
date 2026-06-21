@@ -112,6 +112,34 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
         </div>
         {% endfor %}
     </div>
+    <h3>Ishta / Kashta Dasha-Phala Timeline</h3>
+    <p class="sub">Which periods are likely benefic vs challenging, from each dasha lord's
+    Ishta (benefic) and Kashta (strained) phala.</p>
+    <table class="tl-table phala-table">
+        <thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Ishta</th><th>Kashta</th><th>Verdict</th></tr></thead>
+        <tbody>
+        {% for e in phala.mahadasha %}
+        <tr>
+            <td class="chain">{{ e.lord }}</td><td>{{ e.start }}</td><td>{{ e.end }}</td>
+            <td>{{ e.ishta if e.ishta is not none else '-' }}</td>
+            <td>{{ e.kashta if e.kashta is not none else '-' }}</td>
+            <td class="phala-{{ 'good' if 'benefic' in e.verdict.lower() else ('bad' if 'challeng' in e.verdict.lower() else 'mid') }}">{{ e.verdict }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if phala.antardasha %}
+    <h4>Antardashas within the current Mahadasha</h4>
+    <table class="tl-table phala-table">
+        <thead><tr><th>Period</th><th>From</th><th>To</th><th>Verdict</th></tr></thead>
+        <tbody>
+        {% for e in phala.antardasha %}
+        <tr><td class="chain">{{ e.lord }}</td><td>{{ e.start }}</td><td>{{ e.end }}</td>
+        <td class="phala-{{ 'good' if 'benefic' in e.verdict.lower() else ('bad' if 'challeng' in e.verdict.lower() else 'mid') }}">{{ e.verdict }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
 </section>
 
 <!-- Transit triggers -->
@@ -293,6 +321,28 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
     </table>
     <p class="disclaimer">Computed for the seven classical grahas (Rahu/Ketu have no Shadbala).
     Cheshta Bala rewards retrograde / slow (motional) planets; Ayana Bala uses declination.</p>
+
+    <h3>Ishta-Phala ranking (benefic-result potential)</h3>
+    <div class="ishta-rank">
+        {% for p in ishta_ranking %}
+        <span class="ishta-chip">{{ loop.index }}. {{ p }}</span>
+        {% endfor %}
+    </div>
+
+    <h3>Bhava Bala &mdash; House Strengths</h3>
+    <p class="sub">Strength of each bhava (house) in rupas, led by the Bhavadhipati Bala
+    (the Shadbala of the house lord). Education houses are 4/5/9; career houses 2/10/11.</p>
+    <table class="planet-table sb-table">
+        <thead><tr><th>House</th><th>Lord</th><th>Bhavadhipati</th><th>Occupant</th><th>Aspect</th><th>Rupas</th></tr></thead>
+        <tbody>
+        {% for s in bhava_rows %}
+        <tr>
+            <td>House {{ s.house }}</td><td>{{ s.lord }}</td><td>{{ s.bhavadhipati }}</td>
+            <td>{{ s.occupant }}</td><td>{{ s.drishti }}</td><td><b>{{ s.rupas }}</b></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </section>
 
 <!-- CHARTS -->

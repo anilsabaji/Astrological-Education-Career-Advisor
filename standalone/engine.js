@@ -513,6 +513,29 @@ function statusLine(sb,planet){const ps=sb.planets[planet];if(!ps)return `${plan
   const dir=ps.declination>=0?"N":"S";
   return `${planet}: Shadbala ${ps.rupas} rupas (${ps.sufficient?"sufficient":"below"} the ${ps.required} required), ${ps.benefic?"Ishta/benefic":"Kashta/strained"}; ${ps.motion}; declination ${Math.abs(ps.declination).toFixed(1)}\u00b0${dir}.`;}
 
+// ---- Bhava Bala (house strengths) + Ishta/Kashta phala -------------------
+function bhavaDrishti(ch,house){let v=0;for(const o of SB_PLANETS){const oh=ch.planets[o].house;const rel=((house-oh)%12+12)%12+1;
+  if(rel===1)continue;const asp=[7].concat(SPECIAL_ASP[o]||[]);if(asp.includes(rel))v+=SB_BENEFIC.has(o)?20:-20;}return v;}
+function computeBhavaBala(ch,sb){const r1=x=>Math.round(x*10)/10;const houses={};
+  for(let h=1;h<=12;h++){const lord=ch.lordOfHouse(h);const bhavadhipati=sb.planets[lord]?sb.planets[lord].total:300;
+    const occ=0.10*ch.planetsInHouse(h).filter(n=>sb.planets[n]).reduce((a,n)=>a+sb.planets[n].total,0);
+    const drishti=bhavaDrishti(ch,h);const total=bhavadhipati+occ+drishti;
+    houses[h]={house:h,lord,bhavadhipati:r1(bhavadhipati),occupant:r1(occ),drishti:r1(drishti),total:r1(total),rupas:Math.round(total/60*100)/100};}
+  const ranking=Object.keys(houses).map(Number).sort((a,b)=>houses[b].rupas-houses[a].rupas);
+  return {houses,ranking,groupStrength:hs=>hs.reduce((a,h)=>a+houses[h].rupas,0)/hs.length};}
+function houseStrengthLabel(r){return r>=9?"very strong":r>=7?"strong":r>=5?"moderate":"weak";}
+function periodPhala(sb,lord){const ps=sb.planets[lord];if(!ps)return {ishta:null,kashta:null,verdict:"Variable (node - acts via its dispositor)"};
+  let v;if(ps.ishta>=ps.kashta&&ps.ishta>=40)v="Strongly benefic";else if(ps.ishta>=ps.kashta)v="Benefic / supportive";
+  else if(ps.kashta-ps.ishta>15)v="Challenging";else v="Mixed";return {ishta:ps.ishta,kashta:ps.kashta,verdict:v};}
+function ishtaRanking(sb){return Object.keys(sb.planets).sort((a,b)=>sb.planets[b].ishta-sb.planets[a].ishta);}
+function dashaPhala(tree,sb,now,count){count=count||7;const maha=[];let curMd=null;
+  for(const md of tree){if(md.end<now)continue;const ph=periodPhala(sb,md.lord);
+    maha.push({lord:md.lord,start:fmtDate(md.start),end:fmtDate(md.end),ishta:ph.ishta,kashta:ph.kashta,verdict:ph.verdict});
+    if(md.start<=now&&now<md.end)curMd=md;if(maha.length>=count)break;}
+  const antar=[];if(curMd)for(const ad of curMd.children){if(ad.end<now)continue;const ph=periodPhala(sb,ad.lord);
+    antar.push({lord:curMd.lord+"-"+ad.lord,start:fmtDate(ad.start),end:fmtDate(ad.end),ishta:ph.ishta,kashta:ph.kashta,verdict:ph.verdict});}
+  return {mahadasha:maha,antardasha:antar};}
+
 // ---- advice fusion --------------------------------------------------------
 function weightedPlanets(sources){const score={};for(const [planets,weight] of sources)
   planets.forEach((p,i)=>{score[p]=(score[p]||0)+weight*(1-0.12*i);});return score;}
@@ -689,6 +712,13 @@ function buildReport(birth){
   const shadbala=computeShadbala(parCh);
   const education=adviseEducation(kpCh,parCh,shadbala);
   const career=adviseCareer(kpCh,parCh,shadbala);
+  const bhavaBala=computeBhavaBala(parCh,shadbala);
+  const phala=dashaPhala(tree,shadbala,nowWall,7);
+  const ishtaRank=ishtaRanking(shadbala);
+  const eduHS=bhavaBala.groupStrength([4,5,9]);
+  education.shadbalaNotes.push(`Bhava Bala: the education houses (4th, 5th, 9th) average ${Math.round(eduHS*100)/100} rupas - ${houseStrengthLabel(eduHS)}.`);
+  const carHS=bhavaBala.groupStrength([2,10,11]);
+  career.shadbalaNotes.push(`Bhava Bala: the career houses (2nd, 10th, 11th) average ${Math.round(carHS*100)/100} rupas - ${houseStrengthLabel(carHS)}.`);
   const faqs=buildFaqs(kpCh,parCh,tree,nowWall);
   const yogas=detectYogas(parCh);
   const eduRemedies=remediesFor(parCh,kpCh,"education");
@@ -697,7 +727,7 @@ function buildReport(birth){
   return {birth,kpCh,parCh,tree,
     current:{md:md?md.lord:null,ad:ad?ad.lord:null,pd:pd?pd.lord:null,
       mdPeriod:md?fmtPeriod(md):"-",adPeriod:ad?fmtPeriod(md,ad):"-",pdPeriod:pd?fmtPeriod(md,ad,pd):"-"},
-    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala};
+    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala,bhavaBala,phala,ishtaRank};
 }
 
 root.AstroEngine={buildReport,computeChart,computeShadbala,PLANETS,PSHORT,navamsaSign,dasamsaSign,siddhamsaSign,norm360};

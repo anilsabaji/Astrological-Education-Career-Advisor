@@ -11,7 +11,7 @@ and produces the full education + career advice and the FAQ answers.
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 from . import advice, dasha, faq, remedies, transits
@@ -60,6 +60,9 @@ class AdviceReport:
     career_remedies: list
     transit: transits.TransitReport
     shadbala: object = None
+    bhava_bala: object = None
+    phala_timeline: object = None
+    ishta_ranking: list = field(default_factory=list)
 
 
 def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceReport:
@@ -98,12 +101,66 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
     career_remedies = remedies.remedies_for(par_chart, kp_chart, "career")
     transit_report = transits.build_transit_report(par_chart, now)
 
+    # Bhava Bala (house strengths) and the Ishta/Kashta dasha-phala timeline.
+    bhava_bala = sbmod.compute_bhava_bala(par_chart, shadbala)
+    phala_timeline = _dasha_phala_timeline(tree, shadbala, now)
+    ishta_rank = sbmod.ishta_ranking(shadbala)
+
+    # House-strength notes feed back into the two assessments.
+    edu_hs = bhava_bala.group_strength([4, 5, 9])
+    education.shadbala_notes.append(
+        f"Bhava Bala: the education houses (4th, 5th, 9th) average "
+        f"{round(edu_hs, 2)} rupas - {sbmod.house_strength_label(edu_hs)}.")
+    car_hs = bhava_bala.group_strength([2, 10, 11])
+    career.shadbala_notes.append(
+        f"Bhava Bala: the career houses (2nd, 10th, 11th) average "
+        f"{round(car_hs, 2)} rupas - {sbmod.house_strength_label(car_hs)}.")
+
     return AdviceReport(
         birth=birth, kp_chart=kp_chart, par_chart=par_chart, dasha_tree=tree,
         current=current, education=education, career=career, faqs=faqs,
         yogas=yogas, edu_remedies=edu_remedies, career_remedies=career_remedies,
-        transit=transit_report, shadbala=shadbala,
+        transit=transit_report, shadbala=shadbala, bhava_bala=bhava_bala,
+        phala_timeline=phala_timeline, ishta_ranking=ishta_rank,
     )
+
+
+def _dasha_phala_timeline(tree, sb, now, count=7):
+    """
+    Annotate the running + upcoming Mahadashas (and the current MD's
+    Antardashas) with the dasha lord's Ishta/Kashta phala, so one can see which
+    periods are likely benefic vs challenging.
+    """
+    maha = []
+    current_md = None
+    for md in tree:
+        if md.end < now:
+            continue
+        ishta, kashta, verdict = sbmod.period_phala(sb, md.lord)
+        entry = {
+            "lord": md.lord, "start": md.start.date().isoformat(),
+            "end": md.end.date().isoformat(), "ishta": ishta,
+            "kashta": kashta, "verdict": verdict,
+        }
+        maha.append(entry)
+        if md.start <= now < md.end:
+            current_md = md
+        if len(maha) >= count:
+            break
+
+    antardasha = []
+    if current_md is not None:
+        for ad in current_md.children:
+            if ad.end < now:
+                continue
+            ishta, kashta, verdict = sbmod.period_phala(sb, ad.lord)
+            antardasha.append({
+                "lord": f"{current_md.lord}-{ad.lord}",
+                "start": ad.start.date().isoformat(),
+                "end": ad.end.date().isoformat(), "ishta": ishta,
+                "kashta": kashta, "verdict": verdict,
+            })
+    return {"mahadasha": maha, "antardasha": antardasha}
 
 
 def upcoming_mahadashas(tree, now: dt.datetime, count: int = 6):
@@ -166,6 +223,18 @@ def _shadbala(sb):
         return None
     return {"ranking": sb.ranking,
             "planets": {p: _strength(ps) for p, ps in sb.planets.items()}}
+
+
+def _bhava(bb):
+    if bb is None:
+        return None
+    return {
+        "ranking": bb.ranking,
+        "houses": {h: {"house": s.house, "lord": s.lord, "rupas": s.rupas,
+                       "bhavadhipati": s.bhavadhipati, "occupant": s.occupant,
+                       "drishti": s.drishti, "total_virupa": s.total_virupa}
+                   for h, s in bb.houses.items()},
+    }
 
 
 def report_to_dict(rep: AdviceReport) -> dict:
@@ -240,4 +309,7 @@ def report_to_dict(rep: AdviceReport) -> dict:
             for a in rep.faqs
         ],
         "shadbala": _shadbala(rep.shadbala),
+        "bhava_bala": _bhava(rep.bhava_bala),
+        "ishta_ranking": rep.ishta_ranking,
+        "phala_timeline": rep.phala_timeline,
     }
