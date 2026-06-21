@@ -140,6 +140,7 @@ function render(rep){
   $("bestPanel").innerHTML=renderBest(rep);
   $("sbPanel").innerHTML=renderShadbala(rep);
   $("chartPanel").innerHTML=renderCharts(rep);
+  $("pdfPanel").innerHTML=renderPdf(rep);
 }
 
 function renderOverview(rep){
@@ -369,6 +370,22 @@ function renderCharts(rep){
       <div><h3>Parashara chart (Lahiri / whole-sign)</h3>${planetTable(rep.parCh)}</div></div>
     <p class="disclaimer">Browser edition: positions use the astronomy-engine model and match Swiss Ephemeris to ~0.004&deg;.
     Rahu/Ketu use the mean lunar node (may differ slightly from a true-node calculation).</p></div>`;}
+
+function renderPdf(rep){
+  return `<div class="card"><h2>&#128424; PDF Report</h2>
+    <div class="pdf-cta">
+      <p>Generate a clean, <strong>vibrantly coloured</strong> PDF of the complete report &mdash;
+      every section (Overview &amp; Dasha, Education, Career, FAQ, Best Periods, Shadbala and Charts)
+      is included on one printable document.</p>
+      <button class="pdf-btn" onclick="printReport()">&#128424; Save / Print as PDF</button>
+      <p style="font-size:.82rem;margin-top:14px;">In the print dialog choose <strong>"Save as PDF"</strong>
+      and keep <strong>"Background graphics"</strong> enabled so the colours are preserved.</p>
+      <div class="pdf-swatches">
+        <span style="background:#6a2cf5"></span><span style="background:#9a5cff"></span>
+        <span style="background:#ff7ac3"></span><span style="background:#ffc24d"></span>
+        <span style="background:#16a34a"></span><span style="background:#f59e0b"></span>
+      </div>
+    </div></div>`;}
 
 window.showTab=function(id,btn){
   document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));

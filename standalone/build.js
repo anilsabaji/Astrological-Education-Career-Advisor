@@ -65,7 +65,7 @@ ${css}
       <button class="tab" onclick="showTab('bestPanel',this)">Best Periods</button>
       <button class="tab" onclick="showTab('sbPanel',this)">Strength (Shadbala)</button>
       <button class="tab" onclick="showTab('chartPanel',this)">Charts</button>
-      <button class="tab" onclick="printReport()" title="Open the print dialog and choose 'Save as PDF'">&#128424; Print / Save PDF</button>
+      <button class="tab" onclick="showTab('pdfPanel',this)">&#128424; PDF Report</button>
     </div>
     <h2 class="print-only" style="margin:6px 0;">Complete Education &amp; Career Report</h2>
     <div class="tab-panel active" id="ovPanel"></div>
@@ -75,6 +75,7 @@ ${css}
     <div class="tab-panel" id="bestPanel"></div>
     <div class="tab-panel" id="sbPanel"></div>
     <div class="tab-panel" id="chartPanel"></div>
+    <div class="tab-panel no-print" id="pdfPanel"></div>
   </section>
 </main>
 

@@ -165,37 +165,63 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 }
 
 /* ============================ PRINT (colourful PDF) ===================== */
+/* PDF tab call-to-action (screen) */
+.pdf-cta{text-align:center;padding:18px 10px;}
+.pdf-cta p{color:var(--muted);max-width:560px;margin:6px auto 16px;}
+.pdf-btn{background:linear-gradient(90deg,#7c3aed,#ff7ac3);color:#fff;border:none;border-radius:12px;
+  padding:14px 28px;font-weight:800;font-size:1.05rem;cursor:pointer;box-shadow:0 8px 24px rgba(124,58,237,.4);}
+.pdf-btn:hover{filter:brightness(1.06);}
+.pdf-swatches{display:flex;gap:6px;justify-content:center;margin-top:16px;}
+.pdf-swatches span{width:26px;height:10px;border-radius:3px;}
+
 @media print{
-  @page{margin:14mm;}
-  html,body{background:#fff !important;color:#1d2333 !important;
+  @page{margin:12mm;}
+  html,body{background:#fff !important;color:#15182b !important;
     -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .site-header{position:static;background:linear-gradient(90deg,#5b3fd0,#8b7bf0) !important;border:none;}
+  /* vibrant masthead */
+  .site-header{position:static;border:none;
+    background:linear-gradient(90deg,#6a2cf5 0%,#b14cff 45%,#ff7ac3 100%) !important;padding:8px 0;}
   .site-header,.brand,.tagline{color:#fff !important;}
-  .brand .logo{color:#ffd479 !important;}
-  .no-print,.tabs,.actions,#inputCard,.hint{display:none !important;}
+  .brand .logo{color:#ffe08a !important;}
+  .no-print,.tabs,.actions,#inputCard,.hint,.pdf-cta{display:none !important;}
   .print-only{display:block !important;}
-  /* show every panel for the full report */
   .tab-panel{display:block !important;page-break-inside:auto;}
-  .card{box-shadow:none;border:1px solid #d7d9ec;background:#fff !important;page-break-inside:avoid;margin:10px 0;}
-  .card h2{color:#5b3fd0 !important;border-bottom:2px solid #f4b740;padding-bottom:4px;}
-  .card h3{color:#b8860b !important;}.card h4{color:#5b3fd0 !important;}
-  .report-head .meta,.muted,.reco-meta,.two-col li,.varga-notes li,.tl-table .why,.trigger-list li,.rem-head span{color:#555a73 !important;}
-  .chip,.tr-card,.vk,.reco-list li,.remedy,.varga,.faq-item,.lean,.tl-seg{background:#f5f6ff !important;border-color:#d7d9ec !important;}
-  .chip b,.tr-card span,.vk b,.reco-list li::before{color:#5b3fd0 !important;}
-  .reco-list li::before{background:#f4b740 !important;color:#3a2b00 !important;}
-  .badge.good{background:#e3f8ef !important;color:#1c8f63 !important;border-color:#9fe3c5 !important;}
-  .badge.warn{background:#fdf0db !important;color:#a9701a !important;border-color:#f0cd92 !important;}
-  .badge.info{background:#ece9ff !important;color:#5b3fd0 !important;border-color:#cfc6f7 !important;}
-  .bar{background:#e7e9f7 !important;}.bar span{background:linear-gradient(90deg,#8b7bf0,#f4b740) !important;}
-  .tl-table th,.planet-table th{background:#efeaff !important;color:#5b3fd0 !important;}
-  .tl-table .chain{color:#b8860b !important;}
-  .faq-item summary .v{color:#b8860b !important;}
-  /* expand all FAQ details in print */
-  details{display:block !important;}
-  details > summary{list-style:none;}
-  .faq-body{display:block !important;}
-  .site-footer{border-top:2px solid #f4b740;}
-  .dev-credit{color:#1d2333 !important;}.dev-credit a{color:#5b3fd0 !important;}
+  /* cards with a vibrant colour accent */
+  .card{box-shadow:none;border:1px solid #ece8fb;border-top:4px solid #8b5cf6;
+    background:#fff !important;page-break-inside:avoid;margin:10px 0;border-radius:10px;}
+  /* section title banners */
+  .card>h2{background:linear-gradient(90deg,#6a2cf5,#9a5cff) !important;color:#fff !important;
+    border:none !important;padding:8px 12px;border-radius:8px;margin:-2px 0 12px;font-size:1.12rem;}
+  .card h3{color:#7c3aed !important;border-bottom:2px solid #ffc24d;display:inline-block;padding-bottom:2px;}
+  .card h4{color:#c01f8a !important;}
+  .report-head .meta,.muted,.sub,.reco-meta,.two-col li,.varga-notes li,.tl-table .why,
+  .trigger-list li,.rem-head span,.sb-notes li,.disclaimer,.age-note{color:#555a73 !important;}
+  /* vibrant tables */
+  .planet-table th,.tl-table th{background:linear-gradient(90deg,#ede9fe,#fde6f3) !important;color:#6a2cf5 !important;}
+  .planet-table tr:nth-child(even) td,.tl-table tr:nth-child(even) td{background:#faf8ff !important;}
+  .tl-table .chain{color:#c08a00 !important;font-weight:700;}
+  /* tinted panels */
+  .chip,.tr-card,.vk,.reco-list li,.remedy,.varga,.faq-item,.tl-seg,.chart-wrap,.ishta-chip{
+    background:#faf8ff !important;border-color:#ece8fb !important;}
+  .chip b,.tr-card span,.vk b{color:#6a2cf5 !important;}
+  .reco-list li::before{background:linear-gradient(135deg,#6a2cf5,#ff7ac3) !important;color:#fff !important;}
+  .bar{background:#eee9fb !important;}.bar span{background:linear-gradient(90deg,#7c3aed,#ff7ac3) !important;}
+  .lean{background:#fff7e6 !important;border-left:4px solid #f59e0b !important;}
+  /* solid vibrant badges */
+  .badge.good{background:#16a34a !important;color:#fff !important;border:none !important;}
+  .badge.warn{background:#f59e0b !important;color:#3a2300 !important;border:none !important;}
+  .badge.info{background:#7c3aed !important;color:#fff !important;border:none !important;}
+  .qual-prime{background:#16a34a !important;color:#fff !important;border:none !important;}
+  .qual-favourable{background:#7c3aed !important;color:#fff !important;border:none !important;}
+  .qual-workable{background:#f59e0b !important;color:#3a2300 !important;border:none !important;}
+  .phala-table td.pg,.sb-table td.ok,.yoga-line,.vargottama{color:#16a34a !important;}
+  .phala-table td.pb{color:#e11d6b !important;}
+  .phala-table td.pm,.sb-table td.low{color:#c2740a !important;}
+  /* expand collapsibles for the printed report */
+  details{display:block !important;}details>summary{list-style:none;}.faq-body{display:block !important;}
+  .faq-item summary .v{color:#c08a00 !important;}
+  .site-footer{border-top:3px solid #ffc24d;}
+  .dev-credit{color:#15182b !important;}.dev-credit a{color:#6a2cf5 !important;}
 }
 
 
