@@ -122,6 +122,7 @@ def report(
         "kp_rows": planet_rows(rep.kp_chart),
         "par_rows": planet_rows(rep.par_chart),
         "upcoming": upcoming,
+        "shadbala_rows": [rep.shadbala.planets[p] for p in rep.shadbala.ranking],
         "kp_asc": rep.kp_chart.asc_lordship,
         "par_asc": rep.par_chart.asc_lordship,
         "kp_ascdeg": f"{norm360(rep.kp_chart.ascendant) % 30:.2f}",

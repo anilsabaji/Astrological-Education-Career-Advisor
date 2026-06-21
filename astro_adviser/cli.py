@@ -65,6 +65,10 @@ def main(argv=None):
               f"{int(v.strength * 100)}%"
               + (f", vargottama: {', '.join(v.vargottama)}" if v.vargottama else ""))
         print(f"    {rep.education.varga_summary}")
+    if rep.education.shadbala_notes:
+        print("  Planetary strength (Shadbala):")
+        for n in rep.education.shadbala_notes:
+            print(f"    - {n}")
 
     _print_header("CAREER GUIDANCE")
     print(f"  Earning      : {rep.career.earning_rating}")
@@ -80,6 +84,21 @@ def main(argv=None):
         print(f"    {rep.career.varga_summary}")
     if rep.yogas:
         print("  Yogas present: " + ", ".join(y.name for y in rep.yogas))
+    if rep.career.shadbala_notes:
+        print("  Planetary strength (Shadbala):")
+        for n in rep.career.shadbala_notes:
+            print(f"    - {n}")
+
+    if rep.shadbala:
+        _print_header("SHADBALA (SIX-FOLD PLANETARY STRENGTH)")
+        print(f"  {'Planet':8} {'Rupas':>6} {'Req':>4} {'Ratio':>6} {'Suff':>5} "
+              f"{'Ishta':>6} {'Motion':<28} Declination")
+        for p in rep.shadbala.ranking:
+            s = rep.shadbala.planets[p]
+            decl = f"{abs(s.declination):.1f}{'N' if s.declination >= 0 else 'S'}"
+            print(f"  {p:8} {s.rupas:6} {s.required:4} {s.ratio:6} "
+                  f"{('yes' if s.sufficient else 'no'):>5} "
+                  f"{('Ishta' if s.benefic else 'Kashta'):>6} {s.motion:<28} {decl}")
 
     _print_header("TRANSIT (GOCHAR) TRIGGERS")
     print(f"  As of {rep.transit.as_of}")

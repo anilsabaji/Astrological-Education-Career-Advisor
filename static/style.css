@@ -196,3 +196,11 @@ button:hover { filter: brightness(1.05); }
 @media (max-width: 820px) {
     .varga-head { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* shadbala */
+.sb-notes{margin:6px 0;padding-left:18px;}
+.sb-notes li{color:var(--muted);font-size:.86rem;margin:4px 0;}
+.sb-table{font-size:.8rem;}
+.sb-table td.ok{color:var(--good);font-weight:600;}
+.sb-table td.low{color:var(--warn);font-weight:600;}

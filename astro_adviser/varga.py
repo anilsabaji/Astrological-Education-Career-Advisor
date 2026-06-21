@@ -71,6 +71,63 @@ def siddhamsa_sign(longitude: float) -> str:
     return C.SIGNS[(start + part) % 12]
 
 
+# --- additional vargas used by Shadbala (Saptavarga: D1,D2,D3,D7,D9,D12,D30) -
+def hora_sign(longitude: float) -> str:
+    """D-2 (Hora). Odd signs: 0-15 = Leo (Sun), 15-30 = Cancer (Moon);
+    even signs: 0-15 = Cancer, 15-30 = Leo."""
+    lon = norm360(longitude)
+    si = int(lon // 30)
+    deg = lon - si * 30
+    odd = (si % 2 == 0)
+    if odd:
+        return "Leo" if deg < 15 else "Cancer"
+    return "Cancer" if deg < 15 else "Leo"
+
+
+def drekkana_sign(longitude: float) -> str:
+    """D-3. Three 10 deg parts: 1st = same sign, 2nd = 5th from it, 3rd = 9th."""
+    lon = norm360(longitude)
+    si = int(lon // 30)
+    part = int((lon - si * 30) // 10)            # 0..2
+    return C.SIGNS[(si + part * 4) % 12]
+
+
+def saptamsa_sign(longitude: float) -> str:
+    """D-7. Seven parts: odd signs start from the sign, even from the 7th."""
+    lon = norm360(longitude)
+    si = int(lon // 30)
+    part = int((lon - si * 30) / (30.0 / 7.0))   # 0..6
+    start = si if si % 2 == 0 else (si + 6) % 12
+    return C.SIGNS[(start + part) % 12]
+
+
+def dwadasamsa_sign(longitude: float) -> str:
+    """D-12. Twelve 2.5 deg parts counted from the sign itself."""
+    lon = norm360(longitude)
+    si = int(lon // 30)
+    part = int((lon - si * 30) / 2.5)            # 0..11
+    return C.SIGNS[(si + part) % 12]
+
+
+# Trimsamsa (D-30) maps unequal degree bands to planet-ruled signs.
+_TRIMSA_ODD = [(5, "Aries"), (10, "Aquarius"), (18, "Sagittarius"),
+               (25, "Gemini"), (30, "Libra")]            # Ma, Sa, Ju, Me, Ve
+_TRIMSA_EVEN = [(5, "Taurus"), (12, "Virgo"), (20, "Pisces"),
+                (25, "Capricorn"), (30, "Scorpio")]      # Ve, Me, Ju, Sa, Ma
+
+
+def trimsamsa_sign(longitude: float) -> str:
+    """D-30. Unequal 5/5/8/7/5 (odd) bands ruled by Ma/Sa/Ju/Me/Ve etc."""
+    lon = norm360(longitude)
+    si = int(lon // 30)
+    deg = lon - si * 30
+    table = _TRIMSA_ODD if si % 2 == 0 else _TRIMSA_EVEN
+    for limit, sign in table:
+        if deg < limit:
+            return sign
+    return table[-1][1]
+
+
 DIVISION_FUNCS: Dict[int, Callable[[float], str]] = {
     9: navamsa_sign,
     10: dasamsa_sign,

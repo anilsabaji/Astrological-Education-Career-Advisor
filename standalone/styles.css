@@ -88,6 +88,11 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 .vargottama{color:var(--good);font-weight:600;font-size:.9rem;}
 .varga-notes{margin:6px 0;padding-left:18px;}.varga-notes li{color:var(--muted);font-size:.85rem;}
 .varga-fields{color:var(--accent2);font-size:.88rem;}
+.sb-notes{margin:6px 0;padding-left:18px;}
+.sb-notes li{color:var(--muted);font-size:.86rem;margin:4px 0;}
+.sb-table{font-size:.8rem;}
+.sb-table td.ok{color:var(--good);font-weight:600;}
+.sb-table td.low{color:var(--warn);font-weight:600;}
 
 /* faq */
 .faq-item{border:1px solid var(--line);border-radius:11px;margin:10px 0;background:var(--card2);overflow:hidden;}

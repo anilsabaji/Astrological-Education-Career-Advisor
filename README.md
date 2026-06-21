@@ -41,7 +41,19 @@ The browser edition is rebuilt from the sources in [`standalone/`](standalone/)
 | **Career** | Significators & CSL of 2, 6, 10, 11; job (6) vs business (7) | 10th house/lord, planets in 10th, **D-10 (Dasamsa) career varga**, Sun/Saturn/Mercury/Jupiter karakas, Raja & Dhana yogas |
 | **Earning** | 2nd, 11th significators + 11th CSL | 2nd & 11th lords, Jupiter/Venus strength, Dhana yoga |
 | **Satisfaction** | — | Alignment of 5th & 9th lords + dignity of career planets |
+| **Planetary strength** | — | **Shadbala** (six-fold strength), with motional speed, direction (retrograde) & declination |
 | **Timing** | Vimshottari dasha of the strong significators (majority of MD/AD/PD) | Cross-checked with karaka sub-periods |
+
+### Shadbala (six-fold strength)
+The assessment weighs every contributing planet by its **Shadbala** — the classical
+six strengths: **Sthana** (positional), **Dig** (directional), **Kala** (temporal,
+including **Ayana Bala from declination**), **Cheshta** (motional, from **speed &
+retrogression**), **Naisargika** (natural) and **Drik** (aspectual). Each planet's
+total (in *rupas*), whether it meets its required minimum, its **Ishta/Kashta**
+(benefic vs strained) result, its **motion** (retrograde / fast / slow) and its
+**declination** are reported and folded into the education and career judgement:
+stronger, Ishta, well-moving planets pull their fields up; weak or Kashta planets
+are discounted, and the strongest planet's periods are highlighted.
 
 ### Divisional charts (Vargas)
 Fine judgement uses the divisional charts, not just the rasi (D-1):
@@ -135,7 +147,7 @@ curl "http://localhost:8000/api/faq/when_job?dob=1990-08-15&tob=10:30&latitude=2
 ## Tests
 
 ```bash
-python -m pytest        # 56 tests: dasha, sub-lords, dignities, vargas, KP, advice, FAQ, transits, API
+python -m pytest        # 68 tests: dasha, sub-lords, dignities, vargas, shadbala, KP, advice, FAQ, transits, API
 ```
 
 ---
@@ -156,6 +168,7 @@ astro_adviser/
     ├── parashara.py        # dignities, yogas, D-9/D-10, house-lord analysis
     ├── advice.py           # fuses KP + Parashara into ranked field advice
     ├── varga.py            # divisional charts (D-9/D-10/D-24) + vargottama
+    ├── shadbala.py         # six-fold planetary strength (speed, direction, declination)
     ├── faq.py              # FAQ engine with dasha timelines
     ├── remedies.py         # remedial suggestions (upaya) for weak planets
     ├── transits.py         # transit (gochar) triggers, double transit, Sade Sati

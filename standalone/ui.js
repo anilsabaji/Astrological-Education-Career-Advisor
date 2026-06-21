@@ -55,6 +55,7 @@ function render(rep){
   $("eduPanel").innerHTML=renderEducation(rep);
   $("carPanel").innerHTML=renderCareer(rep);
   $("faqPanel").innerHTML=renderFaq(rep);
+  $("sbPanel").innerHTML=renderShadbala(rep);
   $("chartPanel").innerHTML=renderCharts(rep);
 }
 
@@ -121,6 +122,9 @@ function notesCols(left,leftTitle,right,rightTitle,yogas,yogaLabel){
     <div><h4>${rightTitle}</h4><ul>${li(right)}</ul>
     ${yogas&&yogas.length?`<p class="yoga-line">${yogaLabel}: ${esc(yogas.join(", "))}</p>`:""}</div></div>`;}
 
+function sbNotesBlock(notes){if(!notes||!notes.length)return "";
+  return `<h3>Planetary strength (Shadbala)</h3><ul class="sb-notes">`+notes.map(n=>`<li>${esc(n)}</li>`).join("")+`</ul>`;}
+
 function renderEducation(rep){const e=rep.education;
   return `<div class="card"><h2>&#127891; Education Guidance</h2>
     <div class="verdict-row">
@@ -130,6 +134,7 @@ function renderEducation(rep){const e=rep.education;
     <h3>Recommended streams</h3>${recoList(e.streams)}
     ${notesCols(e.kpNotes,"KP basis",e.parNotes,"Parashara basis",e.yogas,"Education yogas")}
     ${vargaBlock(e.varga,e.vargaSummary,"education")}
+    ${sbNotesBlock(e.shadbalaNotes)}
     ${remedyBlock(rep.eduRemedies)}</div>`;}
 
 function renderCareer(rep){const c=rep.career;
@@ -142,7 +147,25 @@ function renderCareer(rep){const c=rep.career;
       <div><h4>Satisfaction</h4><p class="muted">${esc(c.satisfactionExplanation)}</p></div></div>
     ${notesCols(c.kpNotes,"KP notes",c.parNotes,"Parashara notes",c.yogas,"Career yogas")}
     ${vargaBlock(c.varga,c.vargaSummary,"career")}
+    ${sbNotesBlock(c.shadbalaNotes)}
     ${remedyBlock(rep.careerRemedies)}</div>`;}
+
+function renderShadbala(rep){const sb=rep.shadbala;if(!sb)return "";
+  let h=`<div class="card"><h2>&#9878; Shadbala &mdash; Six-fold Planetary Strength</h2>
+    <p class="muted">Strength in <em>rupas</em> (a planet needs its required minimum to deliver its promise).
+    Ishta = benefic result, Kashta = strained. Motion (speed/direction) feeds Cheshta Bala; declination feeds Ayana Bala.</p>
+    <table class="planet-table sb-table"><thead><tr>
+      <th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Cheshta</th><th>Naisarg.</th><th>Drik</th>
+      <th>Rupas</th><th>Req</th><th>Status</th><th>Result</th><th>Motion</th><th>Decl.</th></tr></thead><tbody>`;
+  sb.ranking.forEach(p=>{const s=sb.planets[p];
+    h+=`<tr><td>${p}</td><td>${s.sthana}</td><td>${s.dig}</td><td>${s.kala}</td><td>${s.cheshta}</td>
+      <td>${s.naisargika}</td><td>${s.drik}</td><td><b>${s.rupas}</b></td><td>${s.required}</td>
+      <td class="${s.sufficient?'ok':'low'}">${s.sufficient?'sufficient':'below'}</td>
+      <td class="${s.benefic?'ok':'low'}">${s.benefic?'Ishta':'Kashta'}</td>
+      <td>${esc(s.motion)}</td><td>${Math.abs(s.declination).toFixed(1)}&deg;${s.declination>=0?'N':'S'}</td></tr>`;});
+  return h+`</tbody></table>
+    <p class="disclaimer">Computed for the seven classical grahas (Rahu/Ketu have no Shadbala). Browser edition:
+    Cheshta uses speed/retrogression and Ayana uses declination; sunrise-based Kala sub-balas may differ slightly from the server build.</p></div>`;}
 
 function renderFaq(rep){let h=`<div class="card"><h2>&#10067; Frequently Asked Questions</h2>
     <p class="muted">Each answer combines the KP promise with the 3-level Vimshottari dasha timing.</p>`;

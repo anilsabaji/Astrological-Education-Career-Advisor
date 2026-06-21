@@ -125,6 +125,9 @@ class PlanetPos:
     retrograde: bool
     house: int                # bhava occupied
     lordship: Lordship
+    speed: float = 0.0        # ecliptic longitude speed, deg/day (sign = direction)
+    declination: float = 0.0  # equatorial declination, deg (N +, S -)
+    latitude: float = 0.0     # ecliptic latitude, deg
 
     @property
     def short(self) -> str:
@@ -153,6 +156,7 @@ class Chart:
     planets: dict                     # name -> PlanetPos
     cusps: list                       # list[HouseCusp] (index 0 == house 1)
     house_signs: list = field(default_factory=list)  # sign of each house 1..12
+    midheaven: float = 0.0            # MC sidereal longitude (for Dig Bala)
 
     # -- convenience lookups -------------------------------------------------
     def planets_in_house(self, house: int):
@@ -227,6 +231,7 @@ def compute_chart(
     # Ascendant + cusps (Placidus, sidereal).
     cusps_raw, ascmc = swe.houses_ex(jd, latitude, longitude, b"P", swe.FLG_SIDEREAL)
     ascendant = norm360(ascmc[0])
+    midheaven = norm360(ascmc[1])
     asc_sign_index = int(ascendant // 30)
 
     # House cusps & their lordships (KP uses Placidus cusps explicitly).
@@ -253,17 +258,28 @@ def compute_chart(
     # Planets.
     planets: dict[str, PlanetPos] = {}
     for name in C.PLANETS:
+        speed = 0.0
+        latitude_ecl = 0.0
+        declination = 0.0
         if name == C.KETU:
             rahu_lon = planets[C.RAHU].longitude
             lon = norm360(rahu_lon + 180.0)
             retro = True   # nodes are always retrograde
+            speed = planets[C.RAHU].speed
+            latitude_ecl = -planets[C.RAHU].latitude
+            declination = -planets[C.RAHU].declination
         else:
             res = swe.calc_ut(jd, _SWE_PLANET[name], _CALC_FLAGS)
             lon = norm360(res[0][0])
+            latitude_ecl = res[0][1]
             speed = res[0][3]
             retro = speed < 0
             if name == C.RAHU:
                 retro = True
+            # Equatorial declination (independent of ayanamsa).
+            eq = swe.calc_ut(jd, _SWE_PLANET[name],
+                             swe.FLG_MOSEPH | swe.FLG_EQUATORIAL | swe.FLG_SPEED)
+            declination = eq[0][1]
 
         sign_index = int(lon // 30)
         if system == "KP":
@@ -275,6 +291,7 @@ def compute_chart(
             name=name, longitude=lon, sign=C.SIGNS[sign_index],
             sign_index=sign_index, degree_in_sign=lon - sign_index * 30,
             retrograde=retro, house=house, lordship=lordships(lon),
+            speed=speed, declination=declination, latitude=latitude_ecl,
         )
 
     return Chart(
@@ -282,5 +299,5 @@ def compute_chart(
         latitude=latitude, longitude=longitude, timezone=tz_offset_hours,
         ayanamsa=ayanamsa, ascendant=ascendant,
         asc_lordship=lordships(ascendant), planets=planets,
-        cusps=cusps, house_signs=house_signs,
+        cusps=cusps, house_signs=house_signs, midheaven=midheaven,
     )

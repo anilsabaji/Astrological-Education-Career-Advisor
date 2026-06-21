@@ -16,6 +16,7 @@ from typing import List, Optional
 
 from . import advice, dasha, faq, remedies, transits
 from . import parashara as par
+from . import shadbala as sbmod
 from .ephemeris import Chart, compute_chart
 
 
@@ -58,6 +59,7 @@ class AdviceReport:
     edu_remedies: list
     career_remedies: list
     transit: transits.TransitReport
+    shadbala: object = None
 
 
 def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceReport:
@@ -80,8 +82,12 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
         pd_period=dasha.format_period(md, ad, pd) if pd else "-",
     )
 
-    education = advice.advise_education(kp_chart, par_chart)
-    career = advice.advise_career(kp_chart, par_chart)
+    # Shadbala (six-fold strength) on the Parashara rasi chart - shared by the
+    # education and career assessments.
+    shadbala = sbmod.compute_shadbala(par_chart)
+
+    education = advice.advise_education(kp_chart, par_chart, sb=shadbala)
+    career = advice.advise_career(kp_chart, par_chart, sb=shadbala)
 
     ctx = faq.FAQContext(kp_chart, par_chart, tree, now)
     faqs = faq.answer_all(ctx)
@@ -96,7 +102,7 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
         birth=birth, kp_chart=kp_chart, par_chart=par_chart, dasha_tree=tree,
         current=current, education=education, career=career, faqs=faqs,
         yogas=yogas, edu_remedies=edu_remedies, career_remedies=career_remedies,
-        transit=transit_report,
+        transit=transit_report, shadbala=shadbala,
     )
 
 
@@ -142,6 +148,26 @@ def _varga(v):
     }
 
 
+def _strength(ps):
+    return {
+        "planet": ps.planet, "rupas": ps.rupas, "required": ps.required,
+        "ratio": ps.ratio, "sufficient": ps.sufficient,
+        "ishta": ps.ishta, "kashta": ps.kashta, "benefic": ps.benefic,
+        "sthana": ps.sthana, "dig": ps.dig, "kala": ps.kala,
+        "cheshta": ps.cheshta, "naisargika": ps.naisargika, "drik": ps.drik,
+        "total_virupa": ps.total_virupa, "speed": ps.speed,
+        "retrograde": ps.retrograde, "declination": ps.declination,
+        "motion": ps.motion, "sub": ps.sub,
+    }
+
+
+def _shadbala(sb):
+    if sb is None:
+        return None
+    return {"ranking": sb.ranking,
+            "planets": {p: _strength(ps) for p, ps in sb.planets.items()}}
+
+
 def report_to_dict(rep: AdviceReport) -> dict:
     """Convert an :class:`AdviceReport` into a JSON-serializable dict."""
     b = rep.birth
@@ -176,6 +202,7 @@ def report_to_dict(rep: AdviceReport) -> dict:
             "remedies": [_remedy(r) for r in rep.edu_remedies],
             "divisional_chart": _varga(rep.education.varga),
             "divisional_summary": rep.education.varga_summary,
+            "shadbala_notes": rep.education.shadbala_notes,
         },
         "career": {
             "earning_rating": rep.career.earning_rating,
@@ -191,6 +218,7 @@ def report_to_dict(rep: AdviceReport) -> dict:
             "remedies": [_remedy(r) for r in rep.career_remedies],
             "divisional_chart": _varga(rep.career.varga),
             "divisional_summary": rep.career.varga_summary,
+            "shadbala_notes": rep.career.shadbala_notes,
         },
         "transits": {
             "as_of": rep.transit.as_of.isoformat(),
@@ -211,4 +239,5 @@ def report_to_dict(rep: AdviceReport) -> dict:
              "timeline": [_window(w) for w in a.timeline]}
             for a in rep.faqs
         ],
+        "shadbala": _shadbala(rep.shadbala),
     }

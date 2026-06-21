@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List
 
 from . import constants as C
-from . import kp, parashara as par
+from . import kp, parashara as par, shadbala as sbmod
 from .ephemeris import Chart
 
 
@@ -44,6 +44,8 @@ class EducationAdvice:
     yogas: List[str]
     varga: object = None             # D-24 (Siddhamsa) analysis
     varga_summary: str = ""
+    shadbala_notes: List[str] = field(default_factory=list)
+    shadbala: object = None
 
 
 @dataclass
@@ -61,6 +63,8 @@ class CareerAdvice:
     yogas: List[str]
     varga: object = None             # D-10 (Dasamsa) analysis
     varga_summary: str = ""
+    shadbala_notes: List[str] = field(default_factory=list)
+    shadbala: object = None
 
 
 # ---------------------------------------------------------------------------
@@ -112,9 +116,18 @@ def _rank_fields(planet_scores: Dict[str, float], mapping: Dict[str, List[str]],
 # ---------------------------------------------------------------------------
 # Education
 # ---------------------------------------------------------------------------
-def advise_education(kp_chart: Chart, par_chart: Chart) -> EducationAdvice:
+def _apply_strength(planet_scores: Dict[str, float], sb) -> Dict[str, float]:
+    """Scale each planet's contribution by its Shadbala strength factor."""
+    if sb is None:
+        return planet_scores
+    return {p: sc * sbmod.strength_factor(sb, p) for p, sc in planet_scores.items()}
+
+
+def advise_education(kp_chart: Chart, par_chart: Chart, sb=None) -> EducationAdvice:
     k = kp.judge_education(kp_chart)
     p = par.judge_education(par_chart)
+    if sb is None:
+        sb = sbmod.compute_shadbala(par_chart)
 
     planet_scores = _weighted_planets(
         (k.field_planets, 1.0),          # KP significators of 4 & 5
@@ -123,6 +136,9 @@ def advise_education(kp_chart: Chart, par_chart: Chart) -> EducationAdvice:
         # D-24 (Siddhamsa) education-varga indicators, weighted by its strength.
         (p.varga.field_planets if p.varga else [], 0.6 + 0.6 * (p.varga.strength if p.varga else 0)),
     )
+    # Weight each contributing planet by its Shadbala status (strong/benefic
+    # planets pull their fields up; weak/kashta planets are discounted).
+    planet_scores = _apply_strength(planet_scores, sb)
 
     # Use the 4th-house sign (KP) as a temperament hint.
     sign_hint = kp_chart.sign_of_house(4)
@@ -130,15 +146,33 @@ def advise_education(kp_chart: Chart, par_chart: Chart) -> EducationAdvice:
 
     promised = k.promised
     he = k.higher_education_likely
-    if p.strength_score >= 0.7:
+
+    # Blend the Parashara education score with the Shadbala of the learning
+    # karakas (Mercury & Jupiter).
+    me, ju = sb.planets.get(C.MERCURY), sb.planets.get(C.JUPITER)
+    karaka_ratio = (min(me.ratio, 1.6) + min(ju.ratio, 1.6)) / 2 / 1.6 if me and ju else 0.5
+    blended = p.strength_score * 0.65 + karaka_ratio * 0.35
+    if blended >= 0.7:
         strength = "Strong - good academic potential"
-    elif p.strength_score >= 0.5:
+    elif blended >= 0.5:
         strength = "Above average - steady learner"
     else:
         strength = "Moderate - benefits from focus and remedies"
 
-    key_planets = list(planet_scores.keys())
-    key_planets = sorted(key_planets, key=lambda x: -planet_scores[x])[:4]
+    key_planets = sorted(planet_scores, key=lambda x: -planet_scores[x])[:4]
+
+    # Shadbala status of the education-critical planets.
+    note_planets = []
+    for cand in [C.MERCURY, C.JUPITER] + key_planets:
+        if cand not in note_planets and cand in sb.planets:
+            note_planets.append(cand)
+    shadbala_notes = [sbmod.status_line(sb, x) for x in note_planets[:4]]
+    if me and ju:
+        weak = [x for x in (C.MERCURY, C.JUPITER) if not sb.planets[x].sufficient]
+        if weak:
+            shadbala_notes.append(
+                f"Learning karaka(s) {', '.join(weak)} are below the required "
+                f"Shadbala - remedies and disciplined effort are advised.")
 
     varga_summary = ""
     if p.varga:
@@ -157,6 +191,7 @@ def advise_education(kp_chart: Chart, par_chart: Chart) -> EducationAdvice:
         kp_notes=k.notes, par_notes=p.notes,
         yogas=[y.name for y in p.yogas],
         varga=p.varga, varga_summary=varga_summary,
+        shadbala_notes=shadbala_notes, shadbala=sb,
     )
 
 
@@ -166,9 +201,11 @@ def advise_education(kp_chart: Chart, par_chart: Chart) -> EducationAdvice:
 _EARN_MAP = {"Strong": 3, "Good": 2, "Moderate": 1}
 
 
-def advise_career(kp_chart: Chart, par_chart: Chart) -> CareerAdvice:
+def advise_career(kp_chart: Chart, par_chart: Chart, sb=None) -> CareerAdvice:
     k = kp.judge_career(kp_chart)
     p = par.judge_career(par_chart)
+    if sb is None:
+        sb = sbmod.compute_shadbala(par_chart)
 
     planet_scores = _weighted_planets(
         (k.field_planets, 1.0),          # KP significators of 10 & 6
@@ -177,14 +214,21 @@ def advise_career(kp_chart: Chart, par_chart: Chart) -> CareerAdvice:
         # D-10 (Dasamsa) career-varga indicators, weighted by its strength.
         (p.varga.field_planets if p.varga else [], 0.7 + 0.7 * (p.varga.strength if p.varga else 0)),
     )
+    planet_scores = _apply_strength(planet_scores, sb)
 
     sign_hint = par_chart.sign_of_house(10)
     fields = _rank_fields(planet_scores, C.PLANET_CAREER_FIELDS, sign_hint)
 
-    # ---- Earning rating (combine KP earning_strength + Parashara wealth) ----
+    # ---- Earning rating (KP + Parashara wealth + Shadbala of wealth givers) -
     kp_earn = _EARN_MAP.get(k.earning_strength, 1)
     par_earn = 3 if p.wealth_score >= 0.7 else 2 if p.wealth_score >= 0.4 else 1
-    combined = (kp_earn + par_earn) / 2.0
+    # Shadbala of the 2nd & 11th lords and Jupiter/Venus.
+    wealth_planets = {par_chart.lord_of_house(2), par_chart.lord_of_house(11),
+                      C.JUPITER, C.VENUS}
+    wp_ratios = [sb.planets[x].ratio for x in wealth_planets if x in sb.planets]
+    wealth_strength = sum(wp_ratios) / len(wp_ratios) if wp_ratios else 1.0
+    sb_earn = 3 if wealth_strength >= 1.15 else 2 if wealth_strength >= 0.9 else 1
+    combined = (kp_earn + par_earn + sb_earn) / 3.0
     if combined >= 2.5:
         earning_rating = "High earning potential"
     elif combined >= 1.75:
@@ -192,14 +236,22 @@ def advise_career(kp_chart: Chart, par_chart: Chart) -> CareerAdvice:
     else:
         earning_rating = "Moderate earning - grows with the right dasha"
     earning_explanation = (
-        f"KP rates earning capacity as '{k.earning_strength}' (from the 2nd, 11th "
+        f"KP rates earning capacity as '{k.earning_strength}' (2nd, 11th "
         f"significators and 11th cuspal sub-lord); Parashara wealth score is "
-        f"{p.wealth_score} (2nd & 11th lords, Jupiter/Venus strength, Dhana yoga). "
+        f"{p.wealth_score}; the wealth-giving planets average "
+        f"{round(wealth_strength, 2)}x their required Shadbala. "
         f"Together this reads as: {earning_rating.lower()}."
     )
 
-    # ---- Satisfaction rating (5th/9th involvement + dignity of field planets)
+    # ---- Satisfaction (5th/9th + dignity + Ishta/Kashta of career planets) --
     sat = _satisfaction(par_chart, p, list(planet_scores.keys()))
+    benefic_field = [x for x in list(planet_scores.keys())[:4]
+                     if x in sb.planets and sb.planets[x].benefic]
+    sat_rating, sat_expl = sat
+    if len(benefic_field) >= 2 and not sat_rating.startswith("High"):
+        sat_expl += (f" The leading career planets ({', '.join(benefic_field)}) "
+                     f"give Ishta (benefic) results in Shadbala, supporting "
+                     f"genuine satisfaction.")
 
     # ---- Job vs business consensus ----
     kp_mode = ("Job / service" if (k.job_indicated and not k.business_indicated)
@@ -209,6 +261,18 @@ def advise_career(kp_chart: Chart, par_chart: Chart) -> CareerAdvice:
     job_vs_business = _consensus_mode(kp_mode, par_mode)
 
     key_planets = sorted(planet_scores, key=lambda x: -planet_scores[x])[:4]
+
+    # Shadbala status of the career-critical planets.
+    tenth_lord = par_chart.lord_of_house(10)
+    note_planets = []
+    for cand in [tenth_lord] + key_planets:
+        if cand not in note_planets and cand in sb.planets:
+            note_planets.append(cand)
+    shadbala_notes = [sbmod.status_line(sb, x) for x in note_planets[:4]]
+    strongest = sb.ranking[0]
+    shadbala_notes.append(
+        f"The strongest planet overall is {strongest} ({sb.planets[strongest].rupas} "
+        f"rupas); its periods and the fields it governs tend to deliver the best results.")
 
     varga_summary = ""
     if p.varga:
@@ -226,11 +290,12 @@ def advise_career(kp_chart: Chart, par_chart: Chart) -> CareerAdvice:
     return CareerAdvice(
         promised=k.promised, fields=fields,
         earning_rating=earning_rating, earning_explanation=earning_explanation,
-        satisfaction_rating=sat[0], satisfaction_explanation=sat[1],
+        satisfaction_rating=sat_rating, satisfaction_explanation=sat_expl,
         job_vs_business=job_vs_business, key_planets=key_planets,
         kp_notes=k.notes, par_notes=p.notes,
         yogas=[y.name for y in p.yogas],
         varga=p.varga, varga_summary=varga_summary,
+        shadbala_notes=shadbala_notes, shadbala=sb,
     )
 
 

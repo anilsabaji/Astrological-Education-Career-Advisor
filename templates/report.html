@@ -29,6 +29,15 @@
 {% endif %}
 {% endmacro %}
 
+{% macro shadbala_notes_block(notes) %}
+{% if notes %}
+<h3>Planetary strength (Shadbala)</h3>
+<ul class="sb-notes">
+  {% for n in notes %}<li>{{ n }}</li>{% endfor %}
+</ul>
+{% endif %}
+{% endmacro %}
+
 {% macro remedy_block(remedies) %}
 {% if remedies %}
 <h3>Remedial suggestions (upaya)</h3>
@@ -165,6 +174,7 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
         </div>
     </div>
     {{ varga_block(rep.education.varga, rep.education.varga_summary, 'education') }}
+    {{ shadbala_notes_block(rep.education.shadbala_notes) }}
     {{ remedy_block(rep.edu_remedies) }}
 </section>
 
@@ -212,6 +222,7 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
         </div>
     </div>
     {{ varga_block(rep.career.varga, rep.career.varga_summary, 'career') }}
+    {{ shadbala_notes_block(rep.career.shadbala_notes) }}
     {{ remedy_block(rep.career_remedies) }}
 </section>
 
@@ -252,6 +263,36 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
         </div>
     </details>
     {% endfor %}
+</section>
+
+<!-- SHADBALA -->
+<section class="card shadbala">
+    <h2>&#9878; Shadbala &mdash; Six-fold Planetary Strength</h2>
+    <p class="sub">Strength in <em>rupas</em> (a planet needs its required minimum to deliver
+    its promise fully). Ishta = benefic result, Kashta = strained. Motion (speed/direction)
+    and declination feed the Cheshta and Ayana balas.</p>
+    <table class="planet-table sb-table">
+        <thead><tr>
+            <th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Cheshta</th>
+            <th>Naisarg.</th><th>Drik</th><th>Rupas</th><th>Req</th><th>Status</th>
+            <th>Result</th><th>Motion</th><th>Decl.</th>
+        </tr></thead>
+        <tbody>
+        {% for s in shadbala_rows %}
+        <tr>
+            <td>{{ s.planet }}</td><td>{{ s.sthana }}</td><td>{{ s.dig }}</td>
+            <td>{{ s.kala }}</td><td>{{ s.cheshta }}</td><td>{{ s.naisargika }}</td>
+            <td>{{ s.drik }}</td><td><b>{{ s.rupas }}</b></td><td>{{ s.required }}</td>
+            <td class="{{ 'ok' if s.sufficient else 'low' }}">{{ 'sufficient' if s.sufficient else 'below' }}</td>
+            <td class="{{ 'ok' if s.benefic else 'low' }}">{{ 'Ishta' if s.benefic else 'Kashta' }}</td>
+            <td>{{ s.motion }}</td>
+            <td>{{ '%.1f'|format(s.declination|abs) }}&deg;{{ 'N' if s.declination >= 0 else 'S' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p class="disclaimer">Computed for the seven classical grahas (Rahu/Ketu have no Shadbala).
+    Cheshta Bala rewards retrograde / slow (motional) planets; Ayana Bala uses declination.</p>
 </section>
 
 <!-- CHARTS -->

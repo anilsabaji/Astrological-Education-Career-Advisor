@@ -99,13 +99,20 @@ function geoEclLon(body,date){
 }
 function meanNode(d){const T=Astronomy.MakeTime(d).tt/36525;
   let om=125.0445479-1934.1362891*T+0.0020754*T*T+T*T*T/467441-T*T*T*T/60616000;return norm360(om);}
-function isRetro(body,date){
-  if(body===SUN||body===MOON) return false;
-  const dt=2*3600*1000;
-  const a=geoEclLon(body,date), b=geoEclLon(body,new Date(date.getTime()+dt));
-  let diff=b-a; if(diff>180)diff-=360; if(diff<-180)diff+=360;
-  return diff<0;
-}
+function wrapDiff(a,b){let d=a-b;if(d>180)d-=360;if(d<-180)d+=360;return d;}
+function speedOf(body,date){const h=0.5;
+  const a=geoEclLon(body,new Date(date.getTime()+h*86400000));
+  const b=geoEclLon(body,new Date(date.getTime()-h*86400000));
+  return wrapDiff(a,b)/(2*h);}
+function geoVec(body,date){
+  if(body===SUN) return Astronomy.GeoVector(Astronomy.Body.Sun,date,true);
+  if(body===MOON) return Astronomy.GeoVector(Astronomy.Body.Moon,date,true);
+  return Astronomy.GeoVector(Astronomy.Body[body],date,true);}
+function declOf(body,date){const v=geoVec(body,date);
+  const r=Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z);return Math.asin(v.z/r)*R2D;}
+function nodeDecl(lonTropical,date){const eps=obliquity(date);
+  return Math.asin(Math.sin(eps*D2R)*Math.sin(lonTropical*D2R))*R2D;}
+function isRetro(body,date){if(body===SUN||body===MOON)return false;return speedOf(body,date)<0;}
 
 // ---- lordships ------------------------------------------------------------
 function subdivide(offset,length,startLord){
@@ -134,6 +141,18 @@ function dasamsaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),dg=lon-si
   const start=(si%2===0)?si:(si+8)%12; return SIGNS[(start+part)%12];}
 function siddhamsaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),dg=lon-si*30,part=Math.floor(dg/(30/24));
   const start=(si%2===0)?SIGNS.indexOf("Leo"):SIGNS.indexOf("Cancer"); return SIGNS[(start+part)%12];}
+function horaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),dg=lon-si*30,odd=(si%2===0);
+  return odd?(dg<15?"Leo":"Cancer"):(dg<15?"Cancer":"Leo");}
+function drekkanaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),part=Math.floor((lon-si*30)/10);
+  return SIGNS[(si+part*4)%12];}
+function saptamsaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),part=Math.floor((lon-si*30)/(30/7));
+  const start=(si%2===0)?si:(si+6)%12;return SIGNS[(start+part)%12];}
+function dwadasamsaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),part=Math.floor((lon-si*30)/2.5);
+  return SIGNS[(si+part)%12];}
+const TRIMSA_ODD=[[5,"Aries"],[10,"Aquarius"],[18,"Sagittarius"],[25,"Gemini"],[30,"Libra"]];
+const TRIMSA_EVEN=[[5,"Taurus"],[12,"Virgo"],[20,"Pisces"],[25,"Capricorn"],[30,"Scorpio"]];
+function trimsamsaSign(lon){lon=norm360(lon);const si=Math.floor(lon/30),dg=lon-si*30;
+  const t=(si%2===0)?TRIMSA_ODD:TRIMSA_EVEN;for(const [lim,s] of t)if(dg<lim)return s;return t[t.length-1][1];}
 const DIVFN={9:navamsaSign,10:dasamsaSign,24:siddhamsaSign};
 const VARGA_NAMES={1:"Rasi (D-1)",9:"Navamsa (D-9)",10:"Dasamsa (D-10)",24:"Chaturvimsamsa (D-24)"};
 
@@ -175,14 +194,16 @@ function computeChart(ephDate,latDeg,lonDeg,system){
   const ayan=(system==="KP")?kpAyan(ephDate):lahiri(ephDate);
   const planets={};
   for(const n of PLANETS){
-    let lon,retro;
-    if(n===KETU){lon=norm360(planets[RAHU].longitude+180);retro=true;}
-    else if(n===RAHU){lon=norm360(meanNode(ephDate)-ayan);retro=true;}
-    else{lon=norm360(geoEclLon(n,ephDate)-ayan);retro=isRetro(n,ephDate);}
+    let lon,retro,speed=0,decl=0;
+    if(n===KETU){lon=norm360(planets[RAHU].longitude+180);retro=true;speed=planets[RAHU].speed;decl=-planets[RAHU].declination;}
+    else if(n===RAHU){const trop=meanNode(ephDate);lon=norm360(trop-ayan);retro=true;speed=0.0;decl=nodeDecl(trop,ephDate);}
+    else{lon=norm360(geoEclLon(n,ephDate)-ayan);speed=speedOf(n,ephDate);retro=speed<0;decl=declOf(n,ephDate);}
     const si=Math.floor(lon/30);
-    planets[n]={name:n,longitude:lon,sign:SIGNS[si],signIndex:si,degInSign:lon-si*30,retro,lordship:lordships(lon)};
+    planets[n]={name:n,longitude:lon,sign:SIGNS[si],signIndex:si,degInSign:lon-si*30,retro,speed,declination:decl,lordship:lordships(lon)};
   }
-  let ascendant,cusps,houseSigns;
+  let ascendant,cusps,houseSigns,mc;
+  const gast=Astronomy.SiderealTime(ephDate),ramc=norm360(gast*15+lonDeg),eps=obliquity(ephDate),phi=latDeg*D2R;
+  mc=norm360(Math.atan2(Math.sin(ramc*D2R),Math.cos(ramc*D2R)*Math.cos(eps*D2R))*R2D-ayan);
   if(system==="KP"){
     const pl=placidusCusps(ephDate,latDeg,lonDeg,ayan);ascendant=pl.asc;
     const arr=[];for(let h=1;h<=12;h++)arr.push(pl.cusps[h]);
@@ -190,14 +211,13 @@ function computeChart(ephDate,latDeg,lonDeg,system){
     houseSigns=cusps.map(c=>c.sign);
     for(const n of PLANETS)planets[n].house=placidusHouse(planets[n].longitude,arr);
   } else {
-    const gast=Astronomy.SiderealTime(ephDate),ramc=norm360(gast*15+lonDeg),eps=obliquity(ephDate),phi=latDeg*D2R;
     ascendant=norm360(Math.atan2(Math.cos(ramc*D2R),-(Math.sin(ramc*D2R)*Math.cos(eps*D2R)+Math.tan(phi)*Math.sin(eps*D2R)))*R2D-ayan);
     const ai=Math.floor(ascendant/30);
     houseSigns=[];for(let i=0;i<12;i++)houseSigns.push(SIGNS[(ai+i)%12]);
     cusps=[];for(let i=0;i<12;i++){const clon=((ai+i)%12)*30;cusps.push({num:i+1,longitude:clon,sign:houseSigns[i],lordship:lordships(clon)});}
     for(const n of PLANETS)planets[n].house=((planets[n].signIndex-ai)%12+12)%12+1;
   }
-  const chart={system,ayanamsa:ayan,ascendant,ascLordship:lordships(ascendant),planets,cusps,houseSigns};
+  const chart={system,ayanamsa:ayan,ascendant,midheaven:mc,ascLordship:lordships(ascendant),planets,cusps,houseSigns,_ephDate:ephDate,_lat:latDeg,_lon:lonDeg};
   chart.signOfHouse=h=>chart.houseSigns[h-1];
   chart.lordOfHouse=h=>SIGN_LORD[chart.houseSigns[h-1]];
   chart.houseOfSign=s=>chart.houseSigns.indexOf(s)+1;
@@ -381,6 +401,118 @@ function parJudgeCareer(ch){const notes=[];const tenthSign=ch.signOfHouse(10),te
   return {tenthSign,tenthLord,planetsInTenth:pit,karaka:{Sun:dig[SUN].state,Saturn:dig[SATURN].state,Mercury:dig[MERCURY].state,Jupiter:dig[JUPITER].state},
     yogas,jobLean:lean,wealth,fieldPlanets:field.slice(0,6),notes,varga:d10};}
 
+// ---- Shadbala (six-fold strength) -----------------------------------------
+const SB_PLANETS=[SUN,MOON,MARS,MERCURY,JUPITER,VENUS,SATURN];
+const NAISARGIKA_SB={Sun:60,Moon:51.43,Venus:42.86,Jupiter:34.29,Mercury:25.71,Mars:17.14,Saturn:8.57};
+const REQUIRED_RUPAS={Sun:6.5,Moon:6.0,Mars:5.0,Mercury:7.0,Jupiter:6.5,Venus:5.5,Saturn:5.0};
+const MEAN_SPEED={Sun:0.9856,Moon:13.176,Mars:0.524,Mercury:1.383,Jupiter:0.083,Venus:1.602,Saturn:0.0335};
+const SAPTAVARGA=[[1,l=>SIGNS[Math.floor(norm360(l)/30)]],[2,horaSign],[3,drekkanaSign],[7,saptamsaSign],[9,navamsaSign],[12,dwadasamsaSign],[30,trimsamsaSign]];
+const SAPTA_VIRUPA={moolatrikona:45,own:30,great_friend:22.5,friend:15,neutral:7.5,enemy:3.75,great_enemy:1.875};
+const KENDRA_SB=new Set([1,4,7,10]),PANAPHARA_SB=new Set([2,5,8,11]);
+const SB_BENEFIC=new Set([JUPITER,VENUS,MERCURY,MOON]);
+const WD_LORD=[SUN,MOON,MARS,MERCURY,JUPITER,VENUS,SATURN];
+const CHALDEAN=[SATURN,JUPITER,MARS,SUN,VENUS,MERCURY,MOON];
+const SPECIAL_ASP={Mars:[4,8],Jupiter:[5,9],Saturn:[3,10]};
+
+function angDist(a,b){let d=Math.abs(norm360(a)-norm360(b))%360;return d<=180?d:360-d;}
+function permanentRel(p,lord){if(p===lord)return 2;const r=(REL[p]||{})[lord]||"n";return {f:1,n:0,e:-1}[r];}
+function temporaryRel(ch,p,other){const rel=((ch.planets[other].signIndex-ch.planets[p].signIndex)%12+12)%12+1;return [2,3,4,10,11,12].includes(rel)?1:-1;}
+function compoundRel(ch,p,lord){if(p===lord)return "own";const s=permanentRel(p,lord)+temporaryRel(ch,p,lord);
+  return s>=2?"great_friend":s===1?"friend":s===0?"neutral":s===-1?"enemy":"great_enemy";}
+function ucchaBala(planet,lon){if(!EXALT[planet])return 0;const [s,d]=EXALT[planet];
+  const ex=SIGNS.indexOf(s)*30+d;return angDist(lon,norm360(ex+180))/3;}
+function saptavargajaBala(ch,planet){let t=0;for(const [,fn] of SAPTAVARGA){const sign=fn(ch.planets[planet].longitude);
+  if(MOOLA[planet]===sign)t+=SAPTA_VIRUPA.moolatrikona;else t+=SAPTA_VIRUPA[compoundRel(ch,planet,SIGN_LORD[sign])];}return t;}
+function ojhayugmaBala(ch,planet){let v=0;const rasiOdd=ch.planets[planet].signIndex%2===0;
+  const navOdd=SIGNS.indexOf(navamsaSign(ch.planets[planet].longitude))%2===0;
+  const wantOdd=[SUN,MARS,JUPITER,MERCURY,SATURN].includes(planet);
+  if(rasiOdd===wantOdd)v+=15;if(navOdd===wantOdd)v+=15;return v;}
+function kendradiBala(h){return KENDRA_SB.has(h)?60:PANAPHARA_SB.has(h)?30:15;}
+function drekkanaBala(planet,lon){const part=Math.floor((norm360(lon)%30)/10);
+  if([SUN,JUPITER,MARS].includes(planet)&&part===0)return 15;
+  if([SATURN,MERCURY].includes(planet)&&part===1)return 15;
+  if([MOON,VENUS].includes(planet)&&part===2)return 15;return 0;}
+function digBala(ch,planet){const asc=ch.ascendant,mc=ch.midheaven,nadir=norm360(mc+180),desc=norm360(asc+180);
+  const weak={Sun:nadir,Mars:nadir,Moon:mc,Venus:mc,Jupiter:desc,Mercury:desc,Saturn:asc}[planet];
+  return angDist(ch.planets[planet].longitude,weak)/3;}
+function ayanaBalaSB(planet,decl){const north=[SUN,MARS,JUPITER,VENUS,MERCURY].includes(planet);
+  const delta=north?decl:-decl;return Math.max(0,Math.min(60,1.2766*(23.45+delta)));}
+function sunSidereal(date){return norm360(geoEclLon(SUN,date)-lahiri(date));}
+function searchRise(start,dir,lat,lon){try{const obs=new Astronomy.Observer(lat,lon,0);
+  const ev=Astronomy.SearchRiseSet(Astronomy.Body.Sun,obs,dir,start,2);return ev?ev.date:null;}catch(e){return null;}}
+function lastEvent(date,dir,lat,lon){let r=searchRise(new Date(date.getTime()-1.5*86400000),dir,lat,lon),last=null;
+  for(let i=0;i<5&&r;i++){if(r<=date)last=r;else break;r=searchRise(new Date(r.getTime()+3600000),dir,lat,lon);}return last;}
+function nextEvent(date,dir,lat,lon){return searchRise(date,dir,lat,lon);}
+
+function kalaBala(ch,planet,sunLon,moonLon){
+  const date=ch._ephDate,lat=ch._lat,lon=ch._lon;
+  // Nathonnatha via Sun hour angle.
+  const gst=Astronomy.SiderealTime(date),lst=((gst+lon/15)%24+24)%24;
+  const sunVec=geoVec(SUN,date);const raSun=norm360(Math.atan2(sunVec.y,sunVec.x)*R2D);
+  // RA from EQJ vector approx; convert using of-date not critical for HA fold.
+  let ha=norm360(lst*15-raSun);const haFold=ha<=180?ha:360-ha;
+  const dayS=(180-haFold)/3,nightS=haFold/3;
+  let nath=planet===MERCURY?60:[SUN,JUPITER,VENUS].includes(planet)?dayS:nightS;
+  // Paksha.
+  const elong=angDist(moonLon,sunLon);let paksha=SB_BENEFIC.has(planet)?elong/3:(180-elong)/3;
+  if(planet===MOON)paksha*=2;
+  // Sunrise/sunset for tribhaga + hora.
+  let tribhaga=0,hora=0,sr=lastEvent(date,+1,lat,lon),ss=lastEvent(date,-1,lat,lon),nsr=nextEvent(date,+1,lat,lon);
+  if(sr&&nsr){
+    const isDay=ss&&sr<=date&&date<ss&&ss>sr;
+    if(isDay){const third=Math.min(2,Math.floor((date-sr)/((ss-sr)/3)));const ruler=[MERCURY,SUN,SATURN][third];
+      if(planet===ruler||planet===JUPITER)tribhaga=60;}
+    else{const start=ss&&date>=ss?ss:lastEvent(new Date(date.getTime()-86400000),-1,lat,lon)||ss;
+      if(start){const third=Math.min(2,Math.max(0,Math.floor((date-start)/Math.max((nsr-start)/3,1))));const ruler=[MOON,VENUS,MARS][third];
+        if(planet===ruler||planet===JUPITER)tribhaga=60;}else if(planet===JUPITER)tribhaga=60;}
+    const horaLen=(nsr-sr)/24;let idx=horaLen>0?Math.floor((date-sr)/horaLen):0;idx=Math.max(0,Math.min(23,idx));
+    const wd=sr.getUTCDay();const dayLord=WD_LORD[wd];const hl=CHALDEAN[(CHALDEAN.indexOf(dayLord)+idx)%7];
+    if(planet===hl)hora=60;
+  } else if(planet===JUPITER)tribhaga=60;
+  // Vara.
+  const wdBirth=(sr&&sr<=date?sr:date).getUTCDay();let vara=planet===WD_LORD[wdBirth]?45:0;
+  // Abda / Masa via solar ingress.
+  let abda=0,masa=0;const curSign=Math.floor(sunSidereal(date)/30);let j=new Date(date);
+  for(let i=0;i<40;i++){if(Math.floor(sunSidereal(j)/30)!==curSign)break;j=new Date(j.getTime()-86400000);}
+  const masaLord=WD_LORD[new Date(j.getTime()+86400000).getUTCDay()];if(planet===masaLord)masa=30;
+  j=new Date(date);for(let i=0;i<380;i++){if(Math.floor(sunSidereal(j)/30)===0&&Math.floor(sunSidereal(new Date(j.getTime()-86400000))/30)===11)break;j=new Date(j.getTime()-86400000);}
+  const abdaLord=WD_LORD[j.getUTCDay()];if(planet===abdaLord)abda=15;
+  const ayana=ayanaBalaSB(planet,ch.planets[planet].declination);
+  return {nathonnatha:nath,paksha,tribhaga,abda,masa,vara,hora,ayana,yuddha:0,
+    total(){return nath+paksha+tribhaga+abda+masa+vara+hora+ayana;}};
+}
+function cheshtaBala(ch,planet,kala){if(planet===SUN)return kala.ayana;if(planet===MOON)return kala.paksha;
+  const p=ch.planets[planet];if(p.retro)return 60;const mean=MEAN_SPEED[planet];const frac=mean?p.speed/mean:1;
+  if(frac<=0)return 60;return Math.max(5,Math.min(60,(1.5-frac)/1.5*60));}
+function motionState(ch,planet){const p=ch.planets[planet];if(planet===SUN||planet===MOON)return "Direct (luminary)";
+  if(p.retro)return "Retrograde (Vakra) - very high motional strength";const frac=Math.abs(p.speed)/MEAN_SPEED[planet];
+  if(frac<0.2)return "Near-stationary (Vikala) - strong";if(frac>1.3)return "Fast / direct (Sheeghra)";return "Direct (normal speed)";}
+function drikBala(ch,planet){const th=ch.planets[planet].house;let v=0;
+  for(const o of SB_PLANETS){if(o===planet)continue;const oh=ch.planets[o].house;const rel=((th-oh)%12+12)%12+1;
+    const asp=[7].concat(SPECIAL_ASP[o]||[]);if(asp.includes(rel))v+=SB_BENEFIC.has(o)?15:-15;}return v/4;}
+function computeShadbala(ch){const sunLon=ch.planets[SUN].longitude,moonLon=ch.planets[MOON].longitude;const planets={};
+  for(const planet of SB_PLANETS){const p=ch.planets[planet];
+    const ub=ucchaBala(planet,p.longitude),sv=saptavargajaBala(ch,planet),oj=ojhayugmaBala(ch,planet),kd=kendradiBala(p.house),dk=drekkanaBala(planet,p.longitude);
+    const sthana=ub+sv+oj+kd+dk;const dig=digBala(ch,planet);const kala=kalaBala(ch,planet,sunLon,moonLon);
+    const ch_=cheshtaBala(ch,planet,kala);const nb=NAISARGIKA_SB[planet];const dr=drikBala(ch,planet);
+    const total=sthana+dig+kala.total()+ch_+nb+dr;const rupas=total/60;const required=REQUIRED_RUPAS[planet];
+    const ishta=Math.sqrt(Math.max(ub,0)*Math.max(ch_,0)),kashta=Math.sqrt(Math.max(60-ub,0)*Math.max(60-ch_,0));
+    const r1=x=>Math.round(x*10)/10;
+    planets[planet]={planet,sthana:r1(sthana),dig:r1(dig),kala:r1(kala.total()),cheshta:r1(ch_),naisargika:r1(nb),drik:r1(dr),
+      total:r1(total),rupas:Math.round(rupas*100)/100,required,ratio:Math.round(rupas/required*100)/100,sufficient:rupas>=required,
+      ishta:r1(ishta),kashta:r1(kashta),benefic:ishta>=kashta,speed:Math.round(p.speed*1e4)/1e4,retrograde:p.retro,
+      declination:Math.round(p.declination*100)/100,motion:motionState(ch,planet),
+      sub:{uccha:r1(ub),saptavargaja:r1(sv),ojhayugma:r1(oj),kendradi:r1(kd),drekkana:r1(dk),nathonnatha:r1(kala.nathonnatha),
+        paksha:r1(kala.paksha),tribhaga:r1(kala.tribhaga),abda:r1(kala.abda),masa:r1(kala.masa),vara:r1(kala.vara),hora:r1(kala.hora),ayana:r1(kala.ayana)}};
+  }
+  const ranking=Object.keys(planets).sort((a,b)=>planets[b].rupas-planets[a].rupas);
+  return {planets,ranking};}
+function strengthFactor(sb,planet){const ps=sb.planets[planet];if(!ps)return 1.0;
+  let f=0.6+0.6*Math.min(ps.ratio,1.6)/1.6;if(ps.benefic)f+=0.1;if(ps.retrograde)f+=0.05;return Math.round(Math.min(1.4,Math.max(0.6,f))*1000)/1000;}
+function statusLine(sb,planet){const ps=sb.planets[planet];if(!ps)return `${planet}: node - Shadbala not applicable.`;
+  const dir=ps.declination>=0?"N":"S";
+  return `${planet}: Shadbala ${ps.rupas} rupas (${ps.sufficient?"sufficient":"below"} the ${ps.required} required), ${ps.benefic?"Ishta/benefic":"Kashta/strained"}; ${ps.motion}; declination ${Math.abs(ps.declination).toFixed(1)}\u00b0${dir}.`;}
+
 // ---- advice fusion --------------------------------------------------------
 function weightedPlanets(sources){const score={};for(const [planets,weight] of sources)
   planets.forEach((p,i)=>{score[p]=(score[p]||0)+weight*(1-0.12*i);});return score;}
@@ -388,15 +520,25 @@ function rankFields(scores,mapping,signHint,top=6){const fs={},fd={};
   for(const planet in scores)for(const fld of (mapping[planet]||[])){fs[fld]=(fs[fld]||0)+scores[planet];(fd[fld]=fd[fld]||new Set()).add(PSHORT[planet]||planet);}
   if(signHint)for(const fld of (SIGN_FIELDS[signHint]||[]))for(const ex in fs)if(ex.toLowerCase().includes(fld.split(" ")[0].toLowerCase())){fs[ex]+=0.4;(fd[ex]=fd[ex]||new Set()).add(signHint);}
   return Object.keys(fs).sort((a,b)=>fs[b]-fs[a]).slice(0,top).map(fld=>({title:fld,score:Math.round(fs[fld]*1000)/1000,drivers:[...fd[fld]].sort()}));}
-function adviseEducation(kpCh,parCh){const k=kpJudgeEducation(kpCh),p=parJudgeEducation(parCh);
+function applyStrength(scores,sb){if(!sb)return scores;const out={};for(const p in scores)out[p]=scores[p]*strengthFactor(sb,p);return out;}
+function adviseEducation(kpCh,parCh,sb){const k=kpJudgeEducation(kpCh),p=parJudgeEducation(parCh);
+  if(!sb)sb=computeShadbala(parCh);
   const vw=0.6+0.6*(p.varga?p.varga.strength:0);
-  const scores=weightedPlanets([[k.fieldPlanets,1.0],[k.significators.slice(0,4),0.6],[p.fieldPlanets,1.0],[p.varga?p.varga.fieldPlanets:[],vw]]);
+  let scores=weightedPlanets([[k.fieldPlanets,1.0],[k.significators.slice(0,4),0.6],[p.fieldPlanets,1.0],[p.varga?p.varga.fieldPlanets:[],vw]]);
+  scores=applyStrength(scores,sb);
   const streams=rankFields(scores,PLANET_EDU,kpCh.signOfHouse(4));
-  const strength=p.score>=0.7?"Strong - good academic potential":p.score>=0.5?"Above average - steady learner":"Moderate - benefits from focus and remedies";
+  const me=sb.planets[MERCURY],ju=sb.planets[JUPITER];
+  const karakaRatio=(me&&ju)?(Math.min(me.ratio,1.6)+Math.min(ju.ratio,1.6))/2/1.6:0.5;
+  const blended=p.score*0.65+karakaRatio*0.35;
+  const strength=blended>=0.7?"Strong - good academic potential":blended>=0.5?"Above average - steady learner":"Moderate - benefits from focus and remedies";
   const keyPlanets=Object.keys(scores).sort((a,b)=>scores[b]-scores[a]).slice(0,4);
+  const noteP=[];for(const c of [MERCURY,JUPITER].concat(keyPlanets))if(!noteP.includes(c)&&sb.planets[c])noteP.push(c);
+  const sbNotes=noteP.slice(0,4).map(x=>statusLine(sb,x));
+  const weak=[MERCURY,JUPITER].filter(x=>sb.planets[x]&&!sb.planets[x].sufficient);
+  if(weak.length)sbNotes.push(`Learning karaka(s) ${weak.join(", ")} are below the required Shadbala - remedies and disciplined effort are advised.`);
   let vs="";if(p.varga){const v=p.varga;vs=`D-24 (Chaturvimsamsa), the education varga, has Lagna ${v.ascSign} (lord ${v.ascLord}). Mercury sits in its ${v.keyPlacements.Mercury}th house and Jupiter in the ${v.keyPlacements.Jupiter}th, giving a divisional academic strength of ${v.strength}. `+(v.vargottama.length?`Vargottama: ${v.vargottama.join(", ")}. `:"");}
   return {promised:k.promised,higherEducation:k.higherEducation,streams,strengthSummary:strength,keyPlanets,
-    kpNotes:k.notes,parNotes:p.notes,yogas:p.yogas.map(y=>y.name),varga:p.varga,vargaSummary:vs};}
+    kpNotes:k.notes,parNotes:p.notes,yogas:p.yogas.map(y=>y.name),varga:p.varga,vargaSummary:vs,shadbalaNotes:sbNotes};}
 const EARN_MAP={Strong:3,Good:2,Moderate:1};
 function satisfaction(parCh,p,fieldPlanets){const dig=allDignities(parCh);
   const fifth=lordPlacement(parCh,5),ninth=lordPlacement(parCh,9);const good=new Set([1,4,5,7,9,10,11]);
@@ -414,21 +556,35 @@ function consensusMode(kpMode,parMode){const kj=kpMode.includes("Job")||kpMode==
   if(kj&&pb&&!kb)return `KP leans to a job while Parashara leans to business - a salaried start followed by an independent venture. (KP: ${kpMode}; Parashara: ${parMode}.)`;
   if(kb&&pj&&!kj)return `KP leans to business while Parashara leans to a job - structured employment first, enterprise later. (KP: ${kpMode}; Parashara: ${parMode}.)`;
   return `Both job and business are workable; the running dasha decides the emphasis. (KP: ${kpMode}; Parashara: ${parMode}.)`;}
-function adviseCareer(kpCh,parCh){const k=kpJudgeCareer(kpCh),p=parJudgeCareer(parCh);
+function adviseCareer(kpCh,parCh,sb){const k=kpJudgeCareer(kpCh),p=parJudgeCareer(parCh);
+  if(!sb)sb=computeShadbala(parCh);
   const vw=0.7+0.7*(p.varga?p.varga.strength:0);
-  const scores=weightedPlanets([[k.fieldPlanets,1.0],[k.significators.slice(0,4),0.6],[p.fieldPlanets,1.1],[p.varga?p.varga.fieldPlanets:[],vw]]);
+  let scores=weightedPlanets([[k.fieldPlanets,1.0],[k.significators.slice(0,4),0.6],[p.fieldPlanets,1.1],[p.varga?p.varga.fieldPlanets:[],vw]]);
+  scores=applyStrength(scores,sb);
   const fields=rankFields(scores,PLANET_CAREER,parCh.signOfHouse(10));
-  const kpEarn=EARN_MAP[k.earning]||1,parEarn=p.wealth>=0.7?3:p.wealth>=0.4?2:1,comb=(kpEarn+parEarn)/2;
+  const kpEarn=EARN_MAP[k.earning]||1,parEarn=p.wealth>=0.7?3:p.wealth>=0.4?2:1;
+  const wealthPlanets=new Set([parCh.lordOfHouse(2),parCh.lordOfHouse(11),JUPITER,VENUS]);
+  const wp=[...wealthPlanets].filter(x=>sb.planets[x]).map(x=>sb.planets[x].ratio);
+  const wealthStrength=wp.length?wp.reduce((a,b)=>a+b,0)/wp.length:1.0;
+  const sbEarn=wealthStrength>=1.15?3:wealthStrength>=0.9?2:1;
+  const comb=(kpEarn+parEarn+sbEarn)/3;
   const earning=comb>=2.5?"High earning potential":comb>=1.75?"Good / comfortable earning":"Moderate earning - grows with the right dasha";
-  const earnExpl=`KP rates earning capacity as '${k.earning}' (2nd, 11th significators & 11th CSL); Parashara wealth score is ${p.wealth} (2nd & 11th lords, Jupiter/Venus strength, Dhana yoga). Together: ${earning.toLowerCase()}.`;
-  const [sr,se]=satisfaction(parCh,p,Object.keys(scores));
+  const earnExpl=`KP rates earning capacity as '${k.earning}' (2nd, 11th significators & 11th CSL); Parashara wealth score is ${p.wealth}; the wealth-giving planets average ${Math.round(wealthStrength*100)/100}x their required Shadbala. Together: ${earning.toLowerCase()}.`;
+  let [sr,se]=satisfaction(parCh,p,Object.keys(scores));
+  const beneficField=Object.keys(scores).slice(0,4).filter(x=>sb.planets[x]&&sb.planets[x].benefic);
+  if(beneficField.length>=2&&!sr.startsWith("High"))se+=` The leading career planets (${beneficField.join(", ")}) give Ishta (benefic) results in Shadbala, supporting genuine satisfaction.`;
   const kpMode=(k.job&&!k.biz)?"Job / service":(k.biz&&!k.job)?"Business / self-employment":"Both";
   const jvb=consensusMode(kpMode,p.jobLean);
   const keyPlanets=Object.keys(scores).sort((a,b)=>scores[b]-scores[a]).slice(0,4);
+  const tenthLord=parCh.lordOfHouse(10);const noteP=[];
+  for(const c of [tenthLord].concat(keyPlanets))if(!noteP.includes(c)&&sb.planets[c])noteP.push(c);
+  const sbNotes=noteP.slice(0,4).map(x=>statusLine(sb,x));
+  const strongest=sb.ranking[0];
+  sbNotes.push(`The strongest planet overall is ${strongest} (${sb.planets[strongest].rupas} rupas); its periods and the fields it governs tend to deliver the best results.`);
   let vs="";if(p.varga){const v=p.varga;const pf=v.planetsInFocus.length?v.planetsInFocus.join(", "):"no planet (10th lord & lagna lord carry it)";
     vs=`D-10 (Dasamsa), the career varga, has Lagna ${v.ascSign} (lord ${v.ascLord}) and a 10th house of ${v.focusSign} (lord ${v.focusLord}). Planets in its 10th: ${pf}. Divisional career strength ${v.strength}. `+(v.vargottama.length?`Vargottama: ${v.vargottama.join(", ")}. `:"");}
   return {promised:k.promised,fields,earningRating:earning,earningExplanation:earnExpl,satisfactionRating:sr,satisfactionExplanation:se,
-    jobVsBusiness:jvb,keyPlanets,kpNotes:k.notes,parNotes:p.notes,yogas:p.yogas.map(y=>y.name),varga:p.varga,vargaSummary:vs};}
+    jobVsBusiness:jvb,keyPlanets,kpNotes:k.notes,parNotes:p.notes,yogas:p.yogas.map(y=>y.name),varga:p.varga,vargaSummary:vs,shadbalaNotes:sbNotes};}
 
 // ---- FAQ ------------------------------------------------------------------
 function fructificationWindows(kpCh,tree,houses,fromDate,horizonYears=25,maxWin=4,requireLevels=2){
@@ -530,8 +686,9 @@ function buildReport(birth){
   const parCh=computeChart(eph,birth.lat,birth.lon,"Parashara");parCh._lat=birth.lat;parCh._lon=birth.lon;
   const tree=buildDashaTree(parCh.planets[MOON].longitude,wall);
   const {md,ad,pd}=findRunning(tree,nowWall);
-  const education=adviseEducation(kpCh,parCh);
-  const career=adviseCareer(kpCh,parCh);
+  const shadbala=computeShadbala(parCh);
+  const education=adviseEducation(kpCh,parCh,shadbala);
+  const career=adviseCareer(kpCh,parCh,shadbala);
   const faqs=buildFaqs(kpCh,parCh,tree,nowWall);
   const yogas=detectYogas(parCh);
   const eduRemedies=remediesFor(parCh,kpCh,"education");
@@ -540,8 +697,8 @@ function buildReport(birth){
   return {birth,kpCh,parCh,tree,
     current:{md:md?md.lord:null,ad:ad?ad.lord:null,pd:pd?pd.lord:null,
       mdPeriod:md?fmtPeriod(md):"-",adPeriod:ad?fmtPeriod(md,ad):"-",pdPeriod:pd?fmtPeriod(md,ad,pd):"-"},
-    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit};
+    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala};
 }
 
-root.AstroEngine={buildReport,computeChart,PLANETS,PSHORT,navamsaSign,dasamsaSign,siddhamsaSign,norm360};
+root.AstroEngine={buildReport,computeChart,computeShadbala,PLANETS,PSHORT,navamsaSign,dasamsaSign,siddhamsaSign,norm360};
 })(typeof window!=="undefined"?window:globalThis);
