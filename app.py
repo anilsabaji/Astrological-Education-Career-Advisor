@@ -96,6 +96,91 @@ def _bhava_svg(rows):
     return _svg_bars(items, round(maxv + 0.5))
 
 
+def _phala_color(verdict):
+    v = (verdict or "").lower()
+    if "strongly benefic" in v:
+        return "#1f9d6b"
+    if "benefic" in v:
+        return "#34c98a"
+    if "challeng" in v:
+        return "#e8607a"
+    if "mixed" in v:
+        return "#e8a13a"
+    return "#5a6ea0"           # node / variable
+
+
+def _phala_ribbon_svg(maha, education_best, career_best, width=600):
+    """A horizontal Gantt-style ribbon of the upcoming Mahadashas coloured by
+    their Ishta/Kashta phala, with education (above) and career (below) best-
+    period windows marked, plus a 'now' line."""
+    import datetime as _dt
+
+    def d(s):
+        return _dt.date.fromisoformat(s).toordinal()
+
+    if not maha:
+        return ""
+    t0 = d(maha[0]["start"])
+    t1 = d(maha[-1]["end"])
+    span = max(t1 - t0, 1)
+    pad, top, band_h = 8, 34, 30
+    height = top + band_h + 30
+    now = _dt.date.today().toordinal()
+
+    def x(t):
+        return pad + (width - 2 * pad) * (t - t0) / span
+
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="ribbon-svg" '
+             f'preserveAspectRatio="xMinYMin meet" role="img">']
+
+    # Mahadasha segments.
+    for m in maha:
+        x0, x1 = x(d(m["start"])), x(d(m["end"]))
+        w = max(x1 - x0, 1)
+        parts.append(
+            f'<rect x="{x0:.1f}" y="{top}" width="{w:.1f}" height="{band_h}" '
+            f'fill="{_phala_color(m["verdict"])}" stroke="#0f1020" stroke-width="0.5"/>')
+        if w > 26:
+            parts.append(f'<text x="{x0 + w/2:.1f}" y="{top + band_h/2 + 4:.1f}" '
+                         f'text-anchor="middle" class="ribbon-lord">{m["lord"]}</text>')
+
+    # Year ticks (every ~5 years).
+    start_year = _dt.date.fromordinal(t0).year
+    end_year = _dt.date.fromordinal(t1).year
+    step = 5 if (end_year - start_year) > 12 else 2
+    yr = start_year - (start_year % step)
+    while yr <= end_year:
+        tx = x(_dt.date(yr, 1, 1).toordinal())
+        if pad <= tx <= width - pad:
+            parts.append(f'<line x1="{tx:.1f}" y1="{top}" x2="{tx:.1f}" '
+                         f'y2="{top + band_h}" stroke="#0f1020" stroke-width="0.5" opacity="0.4"/>')
+            parts.append(f'<text x="{tx:.1f}" y="{top + band_h + 14:.1f}" '
+                         f'text-anchor="middle" class="ribbon-year">{yr}</text>')
+        yr += step
+
+    # Best-period window markers: education above, career below the band.
+    def marks(rows, y, h):
+        qcol = {"prime": "#34c98a", "favourable": "#8b7bf0", "workable": "#e8a13a"}
+        for e in rows:
+            mx0, mx1 = x(d(e["start"])), x(d(e["end"]))
+            w = max(mx1 - mx0, 3)
+            parts.append(f'<rect x="{mx0:.1f}" y="{y}" width="{w:.1f}" height="{h}" '
+                         f'rx="1.5" fill="{qcol.get(e["quality"].lower(), "#8b7bf0")}">'
+                         f'<title>{e["chain"]} ({e["quality"]})</title></rect>')
+    marks(education_best, top - 10, 7)
+    marks(career_best, top + band_h + 3, 7)
+
+    # Now marker.
+    if t0 <= now <= t1:
+        nx = x(now)
+        parts.append(f'<line x1="{nx:.1f}" y1="{top-12}" x2="{nx:.1f}" '
+                     f'y2="{top + band_h + 12:.1f}" class="ribbon-now"/>')
+        parts.append(f'<text x="{nx:.1f}" y="{top-14:.1f}" text-anchor="middle" '
+                     f'class="ribbon-now-label">now</text>')
+    parts.append('</svg>')
+    return "".join(parts)
+
+
 def _resolve_birth(name, dob, tob, city, latitude, longitude, tz) -> BirthData:
     """Build a BirthData from form/query inputs (city pick or raw coordinates)."""
     if city and city in CITIES:
@@ -179,6 +264,8 @@ def report(
         "ishta_ranking": rep.ishta_ranking,
         "education_best": rep.education_best,
         "career_best": rep.career_best,
+        "ribbon_svg": _phala_ribbon_svg(rep.phala_timeline["mahadasha"],
+                                        rep.education_best, rep.career_best),
         "kp_asc": rep.kp_chart.asc_lordship,
         "par_asc": rep.par_chart.asc_lordship,
         "kp_ascdeg": f"{norm360(rep.kp_chart.ascendant) % 30:.2f}",

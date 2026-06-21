@@ -110,6 +110,12 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 .qual-prime{background:rgba(52,201,138,.16);color:var(--good);border:1px solid rgba(52,201,138,.5);}
 .qual-favourable{background:rgba(139,123,240,.16);color:var(--accent2);border:1px solid rgba(139,123,240,.5);}
 .qual-workable{background:rgba(232,161,58,.16);color:var(--warn);border:1px solid rgba(232,161,58,.5);}
+.ribbon-wrap{padding:8px 10px;}
+.ribbon-svg{width:100%;height:auto;display:block;}
+.ribbon-lord{fill:#0f1020;font-size:11px;font-weight:700;}
+.ribbon-year{fill:var(--muted);font-size:10px;}
+.ribbon-now{stroke:#fff;stroke-width:1.5;stroke-dasharray:2 2;}
+.ribbon-now-label{fill:#fff;font-size:10px;font-weight:700;}
 
 /* faq */
 .faq-item{border:1px solid var(--line);border-radius:11px;margin:10px 0;background:var(--card2);overflow:hidden;}

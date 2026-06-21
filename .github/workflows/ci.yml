@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run pytest
+        run: python -m pytest -q
+
+  standalone:
+    name: Build standalone & verify sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install astronomy-engine (pinned)
+        working-directory: standalone
+        run: npm install --no-save astronomy-engine@2.1.19
+      - name: Syntax-check engine and UI
+        working-directory: standalone
+        run: |
+          node --check engine.js
+          node --check ui.js
+      - name: Rebuild docs/index.html
+        working-directory: standalone
+        run: node build.js ../docs
+      - name: Verify docs/index.html is up to date
+        run: |
+          if ! git diff --quiet -- docs/index.html; then
+            echo "::error::docs/index.html is stale. Run 'cd standalone && npm install && npm run build' and commit the result."
+            git --no-pager diff --stat -- docs/index.html
+            exit 1
+          fi
+          echo "docs/index.html is in sync with the standalone sources."

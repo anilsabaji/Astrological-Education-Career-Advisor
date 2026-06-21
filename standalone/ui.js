@@ -75,6 +75,11 @@ function renderOverview(rep){
   if(rep.phala){
     h+=`<h3>Ishta / Kashta Dasha-Phala Timeline</h3>
       <p class="muted">Which periods are likely benefic vs challenging, from each dasha lord's Ishta/Kashta phala.</p>
+      <div class="chart-wrap ribbon-wrap">${ribbonSvg(rep.phala.mahadasha,rep.educationBest,rep.careerBest)}</div>
+      <p class="chart-key"><span class="k" style="background:#34c98a"></span> benefic
+        <span class="k" style="background:#e8a13a"></span> mixed
+        <span class="k" style="background:#e8607a"></span> challenging
+        <span class="k" style="background:#5a6ea0"></span> node &nbsp;|&nbsp; marks above = education, below = career windows.</p>
       <table class="tl-table"><thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Ishta</th><th>Kashta</th><th>Verdict</th></tr></thead><tbody>`;
     rep.phala.mahadasha.forEach(e=>{const cls=e.verdict.toLowerCase().includes("benefic")?"pg":e.verdict.toLowerCase().includes("challeng")?"pb":"pm";
       h+=`<tr><td class="chain">${e.lord}</td><td>${e.start}</td><td>${e.end}</td><td>${e.ishta!=null?e.ishta:"-"}</td><td>${e.kashta!=null?e.kashta:"-"}</td><td class="${cls}">${esc(e.verdict)}</td></tr>`;});
@@ -164,6 +169,33 @@ function renderBest(rep){return `<div class="card"><h2>&#11088; Best Periods &md
   <p class="muted">Where KP fructification windows (significators active) overlap a benefic Ishta/Kashta dasha era.
   <strong>Prime</strong> = benefic era + active significators; <strong>Favourable</strong> = benefic era; <strong>Workable</strong> = needs extra effort.</p>
   ${bestTable("Education growth",rep.educationBest)}${bestTable("Career growth",rep.careerBest)}</div>`;}
+
+function phalaColor(v){v=(v||"").toLowerCase();
+  if(v.includes("strongly benefic"))return "#1f9d6b";if(v.includes("benefic"))return "#34c98a";
+  if(v.includes("challeng"))return "#e8607a";if(v.includes("mixed"))return "#e8a13a";return "#5a6ea0";}
+function ribbonSvg(maha,eduBest,carBest){if(!maha||!maha.length)return "";
+  const ord=s=>Math.floor(new Date(s+"T00:00:00Z").getTime()/86400000);
+  const width=600,pad=8,top=34,bandH=30,height=top+bandH+30;
+  const t0=ord(maha[0].start),t1=ord(maha[maha.length-1].end),span=Math.max(t1-t0,1);
+  const now=Math.floor(Date.now()/86400000);
+  const x=t=>pad+(width-2*pad)*(t-t0)/span;
+  let s=`<svg viewBox="0 0 ${width} ${height}" class="ribbon-svg" preserveAspectRatio="xMinYMin meet">`;
+  maha.forEach(m=>{const x0=x(ord(m.start)),x1=x(ord(m.end)),w=Math.max(x1-x0,1);
+    s+=`<rect x="${x0.toFixed(1)}" y="${top}" width="${w.toFixed(1)}" height="${bandH}" fill="${phalaColor(m.verdict)}" stroke="#0f1020" stroke-width="0.5"/>`;
+    if(w>26)s+=`<text x="${(x0+w/2).toFixed(1)}" y="${(top+bandH/2+4).toFixed(1)}" text-anchor="middle" class="ribbon-lord">${m.lord}</text>`;});
+  const y0=new Date(maha[0].start).getUTCFullYear(),y1=new Date(maha[maha.length-1].end).getUTCFullYear();
+  const step=(y1-y0)>12?5:2;let yr=y0-(y0%step);
+  while(yr<=y1){const tx=x(ord(yr+"-01-01"));if(tx>=pad&&tx<=width-pad){
+    s+=`<line x1="${tx.toFixed(1)}" y1="${top}" x2="${tx.toFixed(1)}" y2="${top+bandH}" stroke="#0f1020" stroke-width="0.5" opacity="0.4"/>`;
+    s+=`<text x="${tx.toFixed(1)}" y="${(top+bandH+14).toFixed(1)}" text-anchor="middle" class="ribbon-year">${yr}</text>`;}yr+=step;}
+  const qcol={prime:"#34c98a",favourable:"#8b7bf0",workable:"#e8a13a"};
+  const marks=(rows,y,h)=>{(rows||[]).forEach(e=>{const mx0=x(ord(e.start)),w=Math.max(x(ord(e.end))-mx0,3);
+    s+=`<rect x="${mx0.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="1.5" fill="${qcol[e.quality.toLowerCase()]||"#8b7bf0"}"><title>${esc(e.chain)} (${e.quality})</title></rect>`;});};
+  marks(eduBest,top-10,7);marks(carBest,top+bandH+3,7);
+  if(t0<=now&&now<=t1){const nx=x(now);
+    s+=`<line x1="${nx.toFixed(1)}" y1="${top-12}" x2="${nx.toFixed(1)}" y2="${(top+bandH+12).toFixed(1)}" class="ribbon-now"/>`;
+    s+=`<text x="${nx.toFixed(1)}" y="${(top-14).toFixed(1)}" text-anchor="middle" class="ribbon-now-label">now</text>`;}
+  return s+`</svg>`;}
 
 function sbNotesBlock(notes){if(!notes||!notes.length)return "";
   return `<h3>Planetary strength (Shadbala)</h3><ul class="sb-notes">`+notes.map(n=>`<li>${esc(n)}</li>`).join("")+`</ul>`;}

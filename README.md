@@ -24,9 +24,12 @@ colourful PDF report.
 **Live link (GitHub Pages):**
 `https://anilsabaji.github.io/Astrological-Education-Career-Advisor/`
 
-To enable the live link once: open the repo on GitHub → **Settings → Pages** →
-under *Build and deployment* set **Source: Deploy from a branch**, **Branch:
-`main` / `/docs`**, then **Save**. The URL above goes live in a minute or two.
+A workflow (`.github/workflows/pages.yml`) deploys `docs/` to Pages automatically.
+One-time setup: open the repo on GitHub -> **Settings -> Pages** -> under *Build
+and deployment* set **Source: GitHub Actions**. Every push to `main` then
+republishes the live link. A CI workflow (`.github/workflows/ci.yml`) runs the
+test suite and verifies `docs/index.html` is rebuilt from the `standalone/`
+sources on every push and pull request.
 
 The browser edition is rebuilt from the sources in [`standalone/`](standalone/)
 (`npm install && npm run build`). Rahu/Ketu there use the mean lunar node.
@@ -68,7 +71,9 @@ career significators are active) with the Ishta/Kashta dasha era, ranking each
 window as **Prime** (benefic era + active significators), **Favourable** or
 **Workable**. The web and browser editions also draw **SVG bar charts** of the
 Shadbala (with the required-strength marker) and the Bhava Bala (education and
-career houses highlighted).
+career houses highlighted), plus a **dasha-phala timeline ribbon** (a Gantt-style
+bar of the upcoming Mahadashas coloured by phala, with the best-period windows
+and a "now" marker).
 
 ### Divisional charts (Vargas)
 Fine judgement uses the divisional charts, not just the rasi (D-1):
