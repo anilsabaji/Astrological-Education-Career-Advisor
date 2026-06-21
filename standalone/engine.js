@@ -535,12 +535,19 @@ function dashaPhala(tree,sb,now,count){count=count||7;const maha=[];let curMd=nu
   const antar=[];if(curMd)for(const ad of curMd.children){if(ad.end<now)continue;const ph=periodPhala(sb,ad.lord);
     antar.push({lord:curMd.lord+"-"+ad.lord,start:fmtDate(ad.start),end:fmtDate(ad.end),ishta:ph.ishta,kashta:ph.kashta,verdict:ph.verdict});}
   return {mahadasha:maha,antardasha:antar};}
-function bestPeriods(kpCh,tree,sb,now,domain){const houses=domain==="education"?[4,9,11]:[2,10,11];
-  const wins=fructificationWindows(kpCh,tree,houses,now,15,6,2);
+function ageYears(birth,d){const m=d.getUTCMonth()+1,day=d.getUTCDate();
+  return d.getUTCFullYear()-birth.year-((m<birth.month||(m===birth.month&&day<birth.day))?1:0);}
+function lifeStage(a){return a<18?"Student years":a<25?"Early career / entry":a<35?"Career building":a<50?"Career peak":a<60?"Senior / consolidation":"Retirement / advisory";}
+function bestPeriods(kpCh,tree,sb,now,domain,birth){const houses=domain==="education"?[4,9,11]:[2,10,11];
+  let fromDate=now;
+  if(domain==="career"){const ws=new Date(Date.UTC(birth.year+16,birth.month-1,birth.day));if(ws>now)fromDate=ws;}
+  const wins=fructificationWindows(kpCh,tree,houses,fromDate,18,6,2);
   return wins.map(w=>{const r=findRunning(tree,w.start);const lord=r.md?r.md.lord:null;
     const ph=lord?periodPhala(sb,lord):{ishta:null,kashta:null,verdict:"-"};
     const benefic=ph.ishta!=null&&ph.ishta>=ph.kashta;const prime=benefic&&ph.verdict.toLowerCase().includes("benefic");
-    return {chain:w.chain,start:fmtDate(w.start),end:fmtDate(w.end),mdLord:lord,phala:ph.verdict,quality:prime?"Prime":benefic?"Favourable":"Workable"};});}
+    const a0=ageYears(birth,w.start),a1=ageYears(birth,w.end);
+    return {chain:w.chain,start:fmtDate(w.start),end:fmtDate(w.end),mdLord:lord,phala:ph.verdict,
+      quality:prime?"Prime":benefic?"Favourable":"Workable",ageStart:a0,ageEnd:a1,lifeStage:lifeStage(a0)};});}
 
 // ---- advice fusion --------------------------------------------------------
 function weightedPlanets(sources){const score={};for(const [planets,weight] of sources)
@@ -721,8 +728,10 @@ function buildReport(birth){
   const bhavaBala=computeBhavaBala(parCh,shadbala);
   const phala=dashaPhala(tree,shadbala,nowWall,7);
   const ishtaRank=ishtaRanking(shadbala);
-  const educationBest=bestPeriods(kpCh,tree,shadbala,nowWall,"education");
-  const careerBest=bestPeriods(kpCh,tree,shadbala,nowWall,"career");
+  const educationBest=bestPeriods(kpCh,tree,shadbala,nowWall,"education",birth);
+  const careerBest=bestPeriods(kpCh,tree,shadbala,nowWall,"career",birth);
+  const currentAge=ageYears(birth,nowWall);const stage=lifeStage(currentAge);
+  career.shadbalaNotes.push(`Age context: the native is currently ${currentAge} years old (${stage}); the career windows below are shown from working age and tagged with the age at that time.`);
   const eduHS=bhavaBala.groupStrength([4,5,9]);
   education.shadbalaNotes.push(`Bhava Bala: the education houses (4th, 5th, 9th) average ${Math.round(eduHS*100)/100} rupas - ${houseStrengthLabel(eduHS)}.`);
   const carHS=bhavaBala.groupStrength([2,10,11]);
@@ -735,7 +744,7 @@ function buildReport(birth){
   return {birth,kpCh,parCh,tree,
     current:{md:md?md.lord:null,ad:ad?ad.lord:null,pd:pd?pd.lord:null,
       mdPeriod:md?fmtPeriod(md):"-",adPeriod:ad?fmtPeriod(md,ad):"-",pdPeriod:pd?fmtPeriod(md,ad,pd):"-"},
-    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala,bhavaBala,phala,ishtaRank,educationBest,careerBest};
+    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala,bhavaBala,phala,ishtaRank,educationBest,careerBest,currentAge,lifeStage:stage};
 }
 
 root.AstroEngine={buildReport,computeChart,computeShadbala,PLANETS,PSHORT,navamsaSign,dasamsaSign,siddhamsaSign,norm360};

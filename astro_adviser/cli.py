@@ -43,6 +43,7 @@ def main(argv=None):
     _print_header(f"ASTRO ADVISER  -  {birth.name}")
     print(f"Born {birth.date} {args.time}  ({birth.place or f'{args.lat},{args.lon}'}) "
           f"UTC{args.tz:+g}")
+    print(f"Age now: {rep.current_age} ({rep.life_stage})")
     print(f"KP Lagna: {rep.kp_chart.asc_lordship.sign} "
           f"(sub-lord {rep.kp_chart.asc_lordship.sub_lord})   "
           f"Parashara Lagna: {rep.par_chart.asc_lordship.sign}")
@@ -117,6 +118,21 @@ def main(argv=None):
             print("  Antardashas within the current Mahadasha:")
             for e in rep.phala_timeline["antardasha"]:
                 print(f"    {e['lord']:18} {e['start']} to {e['end']}  {e['verdict']}")
+
+    def _best_block(title, rows):
+        print(f"  {title}:")
+        for e in rows:
+            age = (f"age {e['age_start']}" if e["age_start"] == e["age_end"]
+                   else f"age {e['age_start']}-{e['age_end']}")
+            print(f"    {e['chain']:22} {e['start']} to {e['end']}  ({age}, "
+                  f"{e['life_stage']})  [{e['md_lord']} - {e['phala']}]  => {e['quality']}")
+
+    if rep.education_best or rep.career_best:
+        _print_header("BEST PERIODS (KP WINDOWS x DASHA PHALA, AGE-AWARE)")
+        print(f"  Native is currently {rep.current_age} ({rep.life_stage}); "
+              f"career windows are shown from working age.")
+        _best_block("Education growth", rep.education_best)
+        _best_block("Career growth", rep.career_best)
 
     _print_header("TRANSIT (GOCHAR) TRIGGERS")
     print(f"  As of {rep.transit.as_of}")

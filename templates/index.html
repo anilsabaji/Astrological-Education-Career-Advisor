@@ -27,13 +27,12 @@
             <input type="time" id="tob" name="tob" required value="10:30">
         </div>
         <div class="field">
-            <label for="city">City (quick pick)</label>
-            <select id="city" name="city">
-                <option value="">-- choose, or enter coordinates below --</option>
-                {% for c in cities %}
-                <option value="{{ c }}">{{ c }}</option>
-                {% endfor %}
-            </select>
+            <label for="city">City (type to search)</label>
+            <input type="text" id="city" name="city" list="cityList" autocomplete="off"
+                   placeholder="Start typing, e.g. Mum…">
+            <datalist id="cityList">
+                {% for c in cities %}<option value="{{ c }}"></option>{% endfor %}
+            </datalist>
         </div>
 
         <fieldset class="coords">
@@ -65,12 +64,17 @@
   (function () {
     var city = document.getElementById("city");
     if (!city) return;
-    city.addEventListener("change", function () {
-      var c = CITY_COORDS[this.value];
-      document.getElementById("latitude").value = c ? c[0] : "";
-      document.getElementById("longitude").value = c ? c[1] : "";
-      document.getElementById("tz").value = c ? c[2] : "";
-    });
+    function fill() {
+      var c = CITY_COORDS[city.value];
+      if (c) {
+        document.getElementById("latitude").value = c[0];
+        document.getElementById("longitude").value = c[1];
+        document.getElementById("tz").value = c[2];
+      }
+    }
+    // 'input' fires while typing / when a datalist suggestion is picked.
+    city.addEventListener("input", fill);
+    city.addEventListener("change", fill);
   })();
 </script>
 

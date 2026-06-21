@@ -168,5 +168,20 @@ def test_best_periods_overlay():
             assert e["chain"].count("-") == 2          # MD-AD-PD
             assert e["start"] < e["end"]
             assert e["md_lord"] in C.PLANETS or e["md_lord"] is None
+            assert isinstance(e["age_start"], int) and e["life_stage"]
+    # career windows must not start before working age (~16)
+    assert all(e["age_start"] >= 15 for e in rep.career_best)
     d = report_to_dict(rep)
     assert d["best_periods"]["education"] and d["best_periods"]["career"]
+    assert d["native"]["current_age"] >= 0 and d["native"]["life_stage"]
+
+
+def test_age_aware_child_vs_adult():
+    import datetime as dt
+    from astro_adviser.adviser import BirthData, build_report
+    child = BirthData(name="Kid", date=dt.date(2018, 5, 10), time=dt.time(9, 0),
+                      latitude=19.07, longitude=72.87, tz_offset_hours=5.5)
+    rep = build_report(child, now=dt.datetime(2026, 6, 20))
+    assert rep.current_age == 8
+    # a young child's career windows should begin at working age, not childhood
+    assert min(e["age_start"] for e in rep.career_best) >= 16

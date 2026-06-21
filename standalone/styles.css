@@ -116,6 +116,8 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 .ribbon-year{fill:var(--muted);font-size:10px;}
 .ribbon-now{stroke:#fff;stroke-width:1.5;stroke-dasharray:2 2;}
 .ribbon-now-label{fill:#fff;font-size:10px;font-weight:700;}
+.age-note{background:var(--card2);border-left:3px solid var(--accent2);border-radius:6px;padding:9px 13px;color:var(--muted);font-size:.88rem;}
+.age-note strong{color:var(--accent);}
 
 /* faq */
 .faq-item{border:1px solid var(--line);border-radius:11px;margin:10px 0;background:var(--card2);overflow:hidden;}

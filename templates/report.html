@@ -42,11 +42,13 @@
 <h3>{{ title }}</h3>
 {% if rows %}
 <table class="tl-table">
-    <thead><tr><th>Window (MD-AD-PD)</th><th>From</th><th>To</th><th>Dasha era</th><th>Quality</th></tr></thead>
+    <thead><tr><th>Window (MD-AD-PD)</th><th>From</th><th>To</th><th>Age</th><th>Dasha era</th><th>Quality</th></tr></thead>
     <tbody>
     {% for e in rows %}
     <tr>
         <td class="chain">{{ e.chain }}</td><td>{{ e.start }}</td><td>{{ e.end }}</td>
+        <td>{{ e.age_start }}{% if e.age_end != e.age_start %}&ndash;{{ e.age_end }}{% endif %}
+            <small class="muted">{{ e.life_stage }}</small></td>
         <td>{{ e.md_lord }} &middot; {{ e.phala }}</td>
         <td><span class="qual qual-{{ e.quality|lower }}">{{ e.quality }}</span></td>
     </tr>
@@ -324,6 +326,9 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
     <p class="sub">Where the KP fructification windows (significators active) overlap with a
     benefic Ishta/Kashta dasha era. <strong>Prime</strong> = benefic era + active significators;
     <strong>Favourable</strong> = benefic era; <strong>Workable</strong> = needs extra effort.</p>
+    <p class="age-note">Native is currently <strong>{{ current_age }}</strong> years old
+    ({{ life_stage }}). Career windows are shown from working age and tagged with the
+    native's age at that time.</p>
     {{ best_periods("Education growth", education_best) }}
     {{ best_periods("Career growth", career_best) }}
 </section>

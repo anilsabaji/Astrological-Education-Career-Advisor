@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from astro_adviser import constants as C
+from astro_adviser.cities import CITIES
 from astro_adviser.adviser import (BirthData, build_report, report_to_dict,
                                     upcoming_mahadashas)
 from astro_adviser.ephemeris import norm360
@@ -31,21 +32,6 @@ BASE = Path(__file__).resolve().parent
 app = FastAPI(title="Astro Adviser - Education & Career (KP + Parashara)")
 app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 templates = Jinja2Templates(directory=str(BASE / "templates"))
-
-
-# A few sample cities so users without coordinates can still try the tool.
-CITIES = {
-    "New Delhi, India": (28.6139, 77.2090, 5.5),
-    "Mumbai, India": (19.0760, 72.8777, 5.5),
-    "Bengaluru, India": (12.9716, 77.5946, 5.5),
-    "Chennai, India": (13.0827, 80.2707, 5.5),
-    "Kolkata, India": (22.5726, 88.3639, 5.5),
-    "London, UK": (51.5074, -0.1278, 0.0),
-    "New York, USA": (40.7128, -74.0060, -5.0),
-    "Dubai, UAE": (25.2048, 55.2708, 4.0),
-    "Singapore": (1.3521, 103.8198, 8.0),
-    "Sydney, Australia": (-33.8688, 151.2093, 11.0),
-}
 
 
 def _svg_bars(items, maxval, marker=None, width=580, row_h=26):
@@ -266,6 +252,8 @@ def report(
         "ishta_ranking": rep.ishta_ranking,
         "education_best": rep.education_best,
         "career_best": rep.career_best,
+        "current_age": rep.current_age,
+        "life_stage": rep.life_stage,
         "ribbon_svg": _phala_ribbon_svg(rep.phala_timeline["mahadasha"],
                                         rep.education_best, rep.career_best),
         "kp_asc": rep.kp_chart.asc_lordship,

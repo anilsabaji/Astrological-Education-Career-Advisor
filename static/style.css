@@ -238,3 +238,7 @@ button:hover { filter: brightness(1.05); }
 .ribbon-year{fill:var(--muted);font-size:10px;}
 .ribbon-now{stroke:#fff;stroke-width:1.5;stroke-dasharray:2 2;}
 .ribbon-now-label{fill:#fff;font-size:10px;font-weight:700;}
+
+
+.age-note{background:var(--card2);border-left:3px solid var(--accent2);border-radius:6px;padding:9px 13px;color:var(--muted);font-size:.88rem;}
+.age-note strong{color:var(--accent);}

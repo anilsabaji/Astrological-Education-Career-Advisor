@@ -65,6 +65,8 @@ class AdviceReport:
     ishta_ranking: list = field(default_factory=list)
     education_best: list = field(default_factory=list)
     career_best: list = field(default_factory=list)
+    current_age: int = 0
+    life_stage: str = ""
 
 
 def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceReport:
@@ -109,9 +111,15 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
     ishta_rank = sbmod.ishta_ranking(shadbala)
 
     # Combined "best periods": KP fructification windows overlaid with the
-    # Ishta/Kashta phala of the running Mahadasha.
-    education_best = _best_periods(kp_chart, tree, shadbala, now, "education")
-    career_best = _best_periods(kp_chart, tree, shadbala, now, "career")
+    # Ishta/Kashta phala of the running Mahadasha, age-aware.
+    education_best = _best_periods(kp_chart, tree, shadbala, now, "education", birth.date)
+    career_best = _best_periods(kp_chart, tree, shadbala, now, "career", birth.date)
+    current_age = _age_years(birth.date, now)
+    life_stage = _life_stage(current_age)
+    career.shadbala_notes.append(
+        f"Age context: the native is currently {current_age} years old "
+        f"({life_stage}); the career windows below are shown from working age "
+        f"and tagged with the age at that time.")
 
     # House-strength notes feed back into the two assessments.
     edu_hs = bhava_bala.group_strength([4, 5, 9])
@@ -130,18 +138,52 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
         transit=transit_report, shadbala=shadbala, bhava_bala=bhava_bala,
         phala_timeline=phala_timeline, ishta_ranking=ishta_rank,
         education_best=education_best, career_best=career_best,
+        current_age=current_age, life_stage=life_stage,
     )
 
 
-def _best_periods(kp_chart, tree, sb, now, domain, horizon_years=15, max_windows=6):
+def _age_years(birth_date, on):
+    """Native's age in completed years on a given date/datetime."""
+    return on.year - birth_date.year - (
+        (on.month, on.day) < (birth_date.month, birth_date.day))
+
+
+def _life_stage(age):
+    if age < 18:
+        return "Student years"
+    if age < 25:
+        return "Early career / entry"
+    if age < 35:
+        return "Career building"
+    if age < 50:
+        return "Career peak"
+    if age < 60:
+        return "Senior / consolidation"
+    return "Retirement / advisory"
+
+
+def _best_periods(kp_chart, tree, sb, now, domain, birth_date,
+                  horizon_years=18, max_windows=6):
     """
     Overlay the KP fructification windows for ``domain`` with the Ishta/Kashta
-    phala of the Mahadasha running at each window, producing ranked "best
-    periods" for education growth or career growth.
+    phala of the running Mahadasha, producing ranked "best periods".
+
+    The native's AGE is taken into account: career windows are only sought from
+    working age (~16+), and every window is annotated with the age range and
+    life-stage so the advice is age-appropriate.
     """
     houses = [4, 9, 11] if domain == "education" else [2, 10, 11]
+    from_date = now
+    if domain == "career":
+        try:
+            work_start = dt.datetime(birth_date.year + 16, birth_date.month,
+                                     birth_date.day)
+        except ValueError:                      # e.g. 29 Feb birth
+            work_start = dt.datetime(birth_date.year + 16, birth_date.month, 28)
+        from_date = max(now, work_start)
+
     windows = faq.fructification_windows(
-        kp_chart, tree, houses, now, horizon_years=horizon_years,
+        kp_chart, tree, houses, from_date, horizon_years=horizon_years,
         max_windows=max_windows, require_levels=2)
     out = []
     for w in windows:
@@ -151,6 +193,8 @@ def _best_periods(kp_chart, tree, sb, now, domain, horizon_years=15, max_windows
         benefic = ishta is not None and ishta >= kashta
         prime = benefic and ("benefic" in verdict.lower())
         quality = "Prime" if prime else ("Favourable" if benefic else "Workable")
+        age_start = _age_years(birth_date, w.start)
+        age_end = _age_years(birth_date, w.end)
         out.append({
             "chain": w.chain,
             "start": w.start.date().isoformat(),
@@ -158,6 +202,9 @@ def _best_periods(kp_chart, tree, sb, now, domain, horizon_years=15, max_windows
             "md_lord": md_lord,
             "phala": verdict,
             "quality": quality,
+            "age_start": age_start,
+            "age_end": age_end,
+            "life_stage": _life_stage(age_start),
             "note": w.note,
         })
     return out
@@ -285,6 +332,7 @@ def report_to_dict(rep: AdviceReport) -> dict:
             "latitude": b.latitude, "longitude": b.longitude,
             "tz_offset_hours": b.tz_offset_hours,
         },
+        "native": {"current_age": rep.current_age, "life_stage": rep.life_stage},
         "lagna": {
             "kp": {"sign": rep.kp_chart.asc_lordship.sign,
                    "sub_lord": rep.kp_chart.asc_lordship.sub_lord},

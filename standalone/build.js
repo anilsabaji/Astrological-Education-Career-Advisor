@@ -38,7 +38,9 @@ ${css}
       <div class="field"><label for="name">Name</label><input type="text" id="name" placeholder="Your name" value="Seeker"></div>
       <div class="field"><label for="dob">Date of birth</label><input type="date" id="dob" value="1990-08-15" required></div>
       <div class="field"><label for="tob">Time of birth (24h, local)</label><input type="time" id="tob" value="10:30" required></div>
-      <div class="field"><label for="city">City (quick pick)</label><select id="city"><option value="">-- choose, or enter coordinates --</option></select></div>
+      <div class="field"><label for="city">City (type to search)</label>
+        <input type="text" id="city" name="city" list="cityList" autocomplete="off" placeholder="Start typing, e.g. Mum&hellip;">
+        <datalist id="cityList"></datalist></div>
       <fieldset class="coords"><legend>Coordinates (auto-filled from the city, or enter your own)</legend>
         <div class="field"><label for="lat">Latitude</label><input type="text" id="lat" placeholder="28.6139"></div>
         <div class="field"><label for="lon">Longitude</label><input type="text" id="lon" placeholder="77.2090"></div>
