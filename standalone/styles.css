@@ -197,3 +197,11 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
   .site-footer{border-top:2px solid #f4b740;}
   .dev-credit{color:#1d2333 !important;}.dev-credit a{color:#5b3fd0 !important;}
 }
+
+
+/* worldwide city typeahead */
+.city-field{position:relative;}
+.city-results{position:absolute;left:0;right:0;top:100%;z-index:30;display:none;max-height:260px;overflow-y:auto;background:var(--card2);border:1px solid var(--line);border-radius:0 0 9px 9px;box-shadow:0 10px 24px rgba(0,0,0,.35);}
+.city-opt{padding:9px 12px;cursor:pointer;font-size:.9rem;border-bottom:1px solid var(--line);}
+.city-opt:hover{background:var(--accent2);color:#fff;}
+.city-empty{padding:9px 12px;color:var(--muted);font-size:.85rem;}

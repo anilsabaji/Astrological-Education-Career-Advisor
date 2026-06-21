@@ -39,14 +39,69 @@ const CITIES={
 "Santiago, Chile":[-33.4489,-70.6693,-4.0]};
 
 document.addEventListener("DOMContentLoaded",function(){
-  const sel=$("city"), dl=$("cityList");
-  Object.keys(CITIES).sort().forEach(c=>{const o=document.createElement("option");o.value=c;if(dl)dl.appendChild(o);});
-  // Auto-capture latitude / longitude / timezone when a matching city is typed/picked.
-  function fill(){const c=CITIES[sel.value];if(c){$("lat").value=c[0];$("lon").value=c[1];$("tz").value=c[2];}}
-  sel.addEventListener("input",fill);
-  sel.addEventListener("change",fill);
+  setupCitySearch();
   $("birthForm").addEventListener("submit",function(e){e.preventDefault();generate();});
+  // Re-derive the timezone offset if the birth date changes after a city pick.
+  $("dob").addEventListener("change",function(){
+    if(window._selZone){const o=tzOffsetForBirth(window._selZone);if(o!=null)$("tz").value=o;}
+  });
 });
+
+// ---- worldwide city typeahead (Open-Meteo geocoding) ----------------------
+var _cityTimer=null;
+function setupCitySearch(){
+  const inp=$("city"), box=$("cityResults");
+  inp.addEventListener("input",function(){
+    window._selZone=null;
+    const q=inp.value.trim();
+    clearTimeout(_cityTimer);
+    if(q.length<2){box.style.display="none";box.innerHTML="";return;}
+    _cityTimer=setTimeout(()=>searchCities(q,inp,box),250);
+  });
+  document.addEventListener("click",function(e){
+    if(e.target!==inp && !box.contains(e.target)){box.style.display="none";}
+  });
+}
+function _cityLabel(c){return [c.name,c.admin1,c.country].filter(Boolean).join(", ");}
+function _renderCities(list,inp,box){
+  if(!list.length){box.innerHTML='<div class="city-empty">No matches &mdash; try another spelling or enter coordinates.</div>';box.style.display="block";return;}
+  box.innerHTML=list.map((c,i)=>`<div class="city-opt" data-i="${i}">${esc(_cityLabel(c))}</div>`).join("");
+  box.style.display="block";
+  box.querySelectorAll(".city-opt").forEach(el=>el.addEventListener("click",()=>pickCity(list[+el.dataset.i],inp,box)));
+}
+function searchCities(q,inp,box){
+  box.innerHTML='<div class="city-empty">Searching&hellip;</div>';box.style.display="block";
+  fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name="+encodeURIComponent(q))
+    .then(r=>r.json())
+    .then(d=>_renderCities((d&&d.results)||[],inp,box))
+    .catch(()=>{
+      // Offline / API failure: fall back to the built-in list.
+      const ql=q.toLowerCase();
+      const local=Object.keys(CITIES).filter(k=>k.toLowerCase().includes(ql))
+        .map(k=>({name:k,latitude:CITIES[k][0],longitude:CITIES[k][1],_off:CITIES[k][2]}));
+      _renderCities(local,inp,box);
+    });
+}
+function pickCity(c,inp,box){
+  inp.value=c._off!==undefined?c.name:_cityLabel(c);
+  box.style.display="none";
+  $("lat").value=(+c.latitude).toFixed(4);
+  $("lon").value=(+c.longitude).toFixed(4);
+  if(c.timezone){window._selZone=c.timezone;const o=tzOffsetForBirth(c.timezone);if(o!=null)$("tz").value=o;}
+  else if(c._off!==undefined){window._selZone=null;$("tz").value=c._off;}
+}
+function tzOffsetForBirth(timeZone){
+  try{
+    const dob=$("dob").value||"2000-01-01", tob=$("tob").value||"12:00";
+    const [y,mo,d]=dob.split("-").map(Number), [h,mi]=tob.split(":").map(Number);
+    const inst=new Date(Date.UTC(y,mo-1,d,h,mi));
+    const dtf=new Intl.DateTimeFormat("en-US",{timeZone,hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const p=dtf.formatToParts(inst).reduce((a,x)=>{a[x.type]=x.value;return a;},{});
+    const hh=p.hour==="24"?0:+p.hour;
+    const asUTC=Date.UTC(+p.year,+p.month-1,+p.day,hh,+p.minute,+p.second);
+    return Math.round((asUTC-inst.getTime())/3600000*100)/100;
+  }catch(e){return null;}
+}
 
 function generate(){
   const errEl=$("formErr");errEl.textContent="";
@@ -54,12 +109,10 @@ function generate(){
     const name=$("name").value||"Seeker";
     const dob=$("dob").value, tob=$("tob").value;
     if(!dob||!tob)throw new Error("Please enter date and time of birth.");
-    const city=$("city").value;
-    let lat,lon,tz,place;
-    if(city&&CITIES[city]){[lat,lon,tz]=CITIES[city];place=city;}
-    else{lat=parseFloat($("lat").value);lon=parseFloat($("lon").value);tz=parseFloat($("tz").value);
-      if([lat,lon,tz].some(v=>isNaN(v)))throw new Error("Choose a city, or enter numeric latitude, longitude and timezone.");
-      place=lat.toFixed(4)+", "+lon.toFixed(4);}
+    const cityText=$("city").value.trim();
+    let lat=parseFloat($("lat").value),lon=parseFloat($("lon").value),tz=parseFloat($("tz").value);
+    if([lat,lon,tz].some(v=>isNaN(v)))throw new Error("Search and select your city, or enter numeric latitude, longitude and timezone.");
+    const place=cityText||(lat.toFixed(4)+", "+lon.toFixed(4));
     const [y,mo,d]=dob.split("-").map(Number);const [h,mi]=tob.split(":").map(Number);
     const birth={name,year:y,month:mo,day:d,hour:h,minute:mi,lat,lon,tz,place};
     const rep=E.buildReport(birth);

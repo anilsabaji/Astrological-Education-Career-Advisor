@@ -131,8 +131,11 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 # open http://localhost:8000
 ```
 
-Enter the date, time and place of birth (pick a city for instant
-coordinates/timezone, or type exact latitude / longitude / UTC offset).
+Enter the date, time and place of birth. **Start typing any city worldwide** and
+pick it from the live suggestions — the latitude, longitude and the
+**daylight-aware timezone offset** (correct for the birth date) are filled in
+automatically. You can also type coordinates by hand. The city search uses an
+online geocoding lookup; all astrology runs locally.
 
 ## Run from the command line
 

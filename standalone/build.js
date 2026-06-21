@@ -38,9 +38,9 @@ ${css}
       <div class="field"><label for="name">Name</label><input type="text" id="name" placeholder="Your name" value="Seeker"></div>
       <div class="field"><label for="dob">Date of birth</label><input type="date" id="dob" value="1990-08-15" required></div>
       <div class="field"><label for="tob">Time of birth (24h, local)</label><input type="time" id="tob" value="10:30" required></div>
-      <div class="field"><label for="city">City (type to search)</label>
-        <input type="text" id="city" name="city" list="cityList" autocomplete="off" placeholder="Start typing, e.g. Mum&hellip;">
-        <datalist id="cityList"></datalist></div>
+      <div class="field city-field"><label for="city">City / place of birth (type to search worldwide)</label>
+        <input type="text" id="city" name="city" autocomplete="off" placeholder="Type any city, e.g. Pune, Nairobi, Reykjav&iacute;k&hellip;">
+        <div id="cityResults" class="city-results"></div></div>
       <fieldset class="coords"><legend>Coordinates (auto-filled from the city, or enter your own)</legend>
         <div class="field"><label for="lat">Latitude</label><input type="text" id="lat" placeholder="28.6139"></div>
         <div class="field"><label for="lon">Longitude</label><input type="text" id="lon" placeholder="77.2090"></div>
@@ -49,7 +49,10 @@ ${css}
       <div class="actions"><button type="submit">Generate advice &rarr;</button></div>
     </form>
     <p class="err" id="formErr"></p>
-    <p class="hint">Tip: pick a city for instant coordinates &amp; timezone, or type your own. Everything is computed locally in your browser &mdash; nothing is uploaded.</p>
+    <p class="hint">Tip: type any city worldwide and pick from the suggestions &mdash; the
+    coordinates and the daylight-aware timezone offset are filled in automatically. The
+    city search uses an online lookup; the astrology runs locally. You can also enter
+    latitude / longitude / timezone by hand.</p>
   </section>
 
   <section id="reportArea" style="display:none;">

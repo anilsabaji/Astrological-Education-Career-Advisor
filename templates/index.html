@@ -26,13 +26,11 @@
             <label for="tob">Time of birth (24h, local)</label>
             <input type="time" id="tob" name="tob" required value="10:30">
         </div>
-        <div class="field">
-            <label for="city">City (type to search)</label>
-            <input type="text" id="city" name="city" list="cityList" autocomplete="off"
-                   placeholder="Start typing, e.g. Mum…">
-            <datalist id="cityList">
-                {% for c in cities %}<option value="{{ c }}"></option>{% endfor %}
-            </datalist>
+        <div class="field city-field">
+            <label for="city">City / place of birth (type to search worldwide)</label>
+            <input type="text" id="city" name="city" autocomplete="off"
+                   placeholder="Type any city, e.g. Pune, Nairobi, Reykjav&iacute;k&hellip;">
+            <div id="cityResults" class="city-results"></div>
         </div>
 
         <fieldset class="coords">
@@ -55,26 +53,76 @@
             <button type="submit">Generate advice &rarr;</button>
         </div>
     </form>
-    <p class="hint">Tip: choose a city to auto-capture its latitude, longitude and
-    timezone, or type your own for precision.</p>
+    <p class="hint">Tip: type any city worldwide and pick from the suggestions &mdash; the
+    latitude, longitude and daylight-aware timezone offset are captured for you. You can
+    also enter coordinates by hand for precision.</p>
 </section>
 
 <script>
   var CITY_COORDS = {{ cities_json|safe }};
-  (function () {
-    var city = document.getElementById("city");
-    if (!city) return;
-    function fill() {
-      var c = CITY_COORDS[city.value];
-      if (c) {
-        document.getElementById("latitude").value = c[0];
-        document.getElementById("longitude").value = c[1];
-        document.getElementById("tz").value = c[2];
-      }
-    }
-    // 'input' fires while typing / when a datalist suggestion is picked.
-    city.addEventListener("input", fill);
-    city.addEventListener("change", fill);
+  var _cityTimer = null, _selZone = null;
+  function $(id){ return document.getElementById(id); }
+  function cityLabel(c){ return [c.name, c.admin1, c.country].filter(Boolean).join(", "); }
+  function tzOffsetForBirth(timeZone){
+    try {
+      var dob = $("dob").value || "2000-01-01", tob = $("tob").value || "12:00";
+      var dp = dob.split("-").map(Number), tp = tob.split(":").map(Number);
+      var inst = new Date(Date.UTC(dp[0], dp[1]-1, dp[2], tp[0], tp[1]));
+      var dtf = new Intl.DateTimeFormat("en-US", {timeZone: timeZone, hour12: false,
+        year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit"});
+      var p = {}; dtf.formatToParts(inst).forEach(function(x){ p[x.type] = x.value; });
+      var hh = p.hour === "24" ? 0 : +p.hour;
+      var asUTC = Date.UTC(+p.year, +p.month-1, +p.day, hh, +p.minute, +p.second);
+      return Math.round((asUTC - inst.getTime()) / 3600000 * 100) / 100;
+    } catch (e) { return null; }
+  }
+  function renderCities(list){
+    var box = $("cityResults");
+    if (!list.length){ box.innerHTML = '<div class="city-empty">No matches &mdash; try another spelling or enter coordinates.</div>'; box.style.display="block"; return; }
+    box.innerHTML = list.map(function(c, i){ return '<div class="city-opt" data-i="'+i+'">'+cityLabel(c)+'</div>'; }).join("");
+    box.style.display = "block";
+    Array.prototype.forEach.call(box.querySelectorAll(".city-opt"), function(el){
+      el.addEventListener("click", function(){ pickCity(list[+el.dataset.i]); });
+    });
+  }
+  function pickCity(c){
+    $("city").value = c._off !== undefined ? c.name : cityLabel(c);
+    $("cityResults").style.display = "none";
+    $("latitude").value = (+c.latitude).toFixed(4);
+    $("longitude").value = (+c.longitude).toFixed(4);
+    if (c.timezone){ _selZone = c.timezone; var o = tzOffsetForBirth(c.timezone); if (o !== null) $("tz").value = o; }
+    else if (c._off !== undefined){ _selZone = null; $("tz").value = c._off; }
+  }
+  function searchCities(q){
+    var box = $("cityResults");
+    box.innerHTML = '<div class="city-empty">Searching&hellip;</div>'; box.style.display = "block";
+    fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name=" + encodeURIComponent(q))
+      .then(function(r){ return r.json(); })
+      .then(function(d){ renderCities((d && d.results) || []); })
+      .catch(function(){
+        var ql = q.toLowerCase(), local = [];
+        Object.keys(CITY_COORDS).forEach(function(k){
+          if (k.toLowerCase().indexOf(ql) >= 0){ var v = CITY_COORDS[k]; local.push({name:k, latitude:v[0], longitude:v[1], _off:v[2]}); }
+        });
+        renderCities(local);
+      });
+  }
+  (function(){
+    var inp = $("city"), box = $("cityResults");
+    if (!inp) return;
+    inp.addEventListener("input", function(){
+      _selZone = null;
+      var q = inp.value.trim();
+      clearTimeout(_cityTimer);
+      if (q.length < 2){ box.style.display = "none"; box.innerHTML = ""; return; }
+      _cityTimer = setTimeout(function(){ searchCities(q); }, 250);
+    });
+    document.addEventListener("click", function(e){
+      if (e.target !== inp && !box.contains(e.target)){ box.style.display = "none"; }
+    });
+    $("dob").addEventListener("change", function(){
+      if (_selZone){ var o = tzOffsetForBirth(_selZone); if (o !== null) $("tz").value = o; }
+    });
   })();
 </script>
 

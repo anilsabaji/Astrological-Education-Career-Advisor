@@ -183,7 +183,7 @@ def _resolve_birth(name, dob, tob, city, latitude, longitude, tz) -> BirthData:
                 status_code=422,
                 detail="Provide a known city, or numeric latitude, longitude and tz.",
             )
-        place = f"{lat:.4f}, {lon:.4f}"
+        place = city.strip() if city and city.strip() else f"{lat:.4f}, {lon:.4f}"
 
     try:
         d = dt.datetime.strptime(dob, "%Y-%m-%d").date()
