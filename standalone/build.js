@@ -57,6 +57,7 @@ ${css}
       <button class="tab" onclick="showTab('eduPanel',this)">Education</button>
       <button class="tab" onclick="showTab('carPanel',this)">Career</button>
       <button class="tab" onclick="showTab('faqPanel',this)">FAQ</button>
+      <button class="tab" onclick="showTab('bestPanel',this)">Best Periods</button>
       <button class="tab" onclick="showTab('sbPanel',this)">Strength (Shadbala)</button>
       <button class="tab" onclick="showTab('chartPanel',this)">Charts</button>
       <button class="tab" onclick="printReport()" title="Open the print dialog and choose 'Save as PDF'">&#128424; Print / Save PDF</button>
@@ -66,6 +67,7 @@ ${css}
     <div class="tab-panel" id="eduPanel"></div>
     <div class="tab-panel" id="carPanel"></div>
     <div class="tab-panel" id="faqPanel"></div>
+    <div class="tab-panel" id="bestPanel"></div>
     <div class="tab-panel" id="sbPanel"></div>
     <div class="tab-panel" id="chartPanel"></div>
   </section>

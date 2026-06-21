@@ -38,6 +38,24 @@
 {% endif %}
 {% endmacro %}
 
+{% macro best_periods(title, rows) %}
+<h3>{{ title }}</h3>
+{% if rows %}
+<table class="tl-table">
+    <thead><tr><th>Window (MD-AD-PD)</th><th>From</th><th>To</th><th>Dasha era</th><th>Quality</th></tr></thead>
+    <tbody>
+    {% for e in rows %}
+    <tr>
+        <td class="chain">{{ e.chain }}</td><td>{{ e.start }}</td><td>{{ e.end }}</td>
+        <td>{{ e.md_lord }} &middot; {{ e.phala }}</td>
+        <td><span class="qual qual-{{ e.quality|lower }}">{{ e.quality }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}<p class="muted">No clear window within the look-ahead horizon.</p>{% endif %}
+{% endmacro %}
+
 {% macro remedy_block(remedies) %}
 {% if remedies %}
 <h3>Remedial suggestions (upaya)</h3>
@@ -293,12 +311,26 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
     {% endfor %}
 </section>
 
+<!-- BEST PERIODS (overlay) -->
+<section class="card best-periods">
+    <h2>&#11088; Best Periods &mdash; Dasha Phala &times; KP Windows</h2>
+    <p class="sub">Where the KP fructification windows (significators active) overlap with a
+    benefic Ishta/Kashta dasha era. <strong>Prime</strong> = benefic era + active significators;
+    <strong>Favourable</strong> = benefic era; <strong>Workable</strong> = needs extra effort.</p>
+    {{ best_periods("Education growth", education_best) }}
+    {{ best_periods("Career growth", career_best) }}
+</section>
+
 <!-- SHADBALA -->
 <section class="card shadbala">
     <h2>&#9878; Shadbala &mdash; Six-fold Planetary Strength</h2>
     <p class="sub">Strength in <em>rupas</em> (a planet needs its required minimum to deliver
     its promise fully). Ishta = benefic result, Kashta = strained. Motion (speed/direction)
     and declination feed the Cheshta and Ayana balas.</p>
+    <div class="chart-wrap">{{ shadbala_svg|safe }}</div>
+    <p class="chart-key"><span class="k g"></span> sufficient &amp; Ishta &nbsp;
+       <span class="k a"></span> sufficient &nbsp; <span class="k r"></span> below required
+       &nbsp;|&nbsp; the dashed line marks the average required strength.</p>
     <table class="planet-table sb-table">
         <thead><tr>
             <th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Cheshta</th>
@@ -332,6 +364,9 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
     <h3>Bhava Bala &mdash; House Strengths</h3>
     <p class="sub">Strength of each bhava (house) in rupas, led by the Bhavadhipati Bala
     (the Shadbala of the house lord). Education houses are 4/5/9; career houses 2/10/11.</p>
+    <div class="chart-wrap">{{ bhava_svg|safe }}</div>
+    <p class="chart-key"><span class="k p"></span> education house (4/5/9) &nbsp;
+       <span class="k y"></span> career house (2/10/11) &nbsp; <span class="k n"></span> other</p>
     <table class="planet-table sb-table">
         <thead><tr><th>House</th><th>Lord</th><th>Bhavadhipati</th><th>Occupant</th><th>Aspect</th><th>Rupas</th></tr></thead>
         <tbody>

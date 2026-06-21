@@ -47,6 +47,55 @@ CITIES = {
 }
 
 
+def _svg_bars(items, maxval, marker=None, width=580, row_h=26):
+    """Render a horizontal bar chart as an inline SVG string.
+    items: list of dicts {label, value, color}. marker: optional value drawn
+    as a vertical reference line (e.g. the required Shadbala)."""
+    label_w, val_w, pad = 78, 46, 8
+    bar_area = width - label_w - val_w - pad
+    height = len(items) * row_h + 8
+    maxval = maxval or 1
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="bar-svg" '
+             f'role="img" preserveAspectRatio="xMinYMin meet">']
+    if marker is not None:
+        mx = label_w + bar_area * min(marker / maxval, 1.0)
+        parts.append(f'<line x1="{mx:.1f}" y1="2" x2="{mx:.1f}" y2="{height-6}" '
+                     f'class="bar-marker"/>')
+    for i, it in enumerate(items):
+        y = i * row_h + 4
+        w = max(2, bar_area * min(it["value"] / maxval, 1.0))
+        parts.append(
+            f'<text x="0" y="{y+15}" class="bar-label">{it["label"]}</text>'
+            f'<rect x="{label_w}" y="{y+3}" width="{w:.1f}" height="{row_h-9}" '
+            f'rx="3" fill="{it["color"]}"/>'
+            f'<text x="{label_w + w + 5:.1f}" y="{y+15}" class="bar-val">{it["value"]}</text>')
+    parts.append('</svg>')
+    return "".join(parts)
+
+
+def _shadbala_svg(rows):
+    items = []
+    for s in rows:
+        color = ("#34c98a" if (s.sufficient and s.benefic)
+                 else "#e8a13a" if s.sufficient else "#e8607a")
+        items.append({"label": s.planet, "value": s.rupas, "color": color})
+    maxv = max([s.rupas for s in rows] + [1])
+    avg_req = sum(s.required for s in rows) / len(rows)
+    return _svg_bars(items, round(maxv + 0.5), marker=avg_req)
+
+
+def _bhava_svg(rows):
+    edu, car = {4, 5, 9}, {2, 10, 11}
+    items = []
+    for s in rows:
+        color = ("#8b7bf0" if s.house in edu else "#f4b740" if s.house in car
+                 else "#5a6ea0")
+        items.append({"label": f"H{s.house} ({s.lord[:2]})", "value": s.rupas,
+                      "color": color})
+    maxv = max([s.rupas for s in rows] + [1])
+    return _svg_bars(items, round(maxv + 0.5))
+
+
 def _resolve_birth(name, dob, tob, city, latitude, longitude, tz) -> BirthData:
     """Build a BirthData from form/query inputs (city pick or raw coordinates)."""
     if city and city in CITIES:
@@ -124,8 +173,12 @@ def report(
         "upcoming": upcoming,
         "shadbala_rows": [rep.shadbala.planets[p] for p in rep.shadbala.ranking],
         "bhava_rows": [rep.bhava_bala.houses[h] for h in rep.bhava_bala.ranking],
+        "shadbala_svg": _shadbala_svg([rep.shadbala.planets[p] for p in rep.shadbala.ranking]),
+        "bhava_svg": _bhava_svg([rep.bhava_bala.houses[h] for h in rep.bhava_bala.ranking]),
         "phala": rep.phala_timeline,
         "ishta_ranking": rep.ishta_ranking,
+        "education_best": rep.education_best,
+        "career_best": rep.career_best,
         "kp_asc": rep.kp_chart.asc_lordship,
         "par_asc": rep.par_chart.asc_lordship,
         "kp_ascdeg": f"{norm360(rep.kp_chart.ascendant) % 30:.2f}",

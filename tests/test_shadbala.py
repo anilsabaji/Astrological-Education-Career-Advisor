@@ -153,3 +153,20 @@ def test_report_has_bhava_and_phala():
     assert d["bhava_bala"]["ranking"]
     assert d["phala_timeline"]["mahadasha"]
     assert d["ishta_ranking"]
+
+
+def test_best_periods_overlay():
+    import datetime as dt
+    from astro_adviser.adviser import BirthData, build_report, report_to_dict
+    b = BirthData(name="R", date=dt.date(1990, 8, 15), time=dt.time(10, 30),
+                  latitude=28.6139, longitude=77.2090, tz_offset_hours=5.5)
+    rep = build_report(b, now=dt.datetime(2026, 6, 20))
+    for rows in (rep.education_best, rep.career_best):
+        assert rows
+        for e in rows:
+            assert e["quality"] in ("Prime", "Favourable", "Workable")
+            assert e["chain"].count("-") == 2          # MD-AD-PD
+            assert e["start"] < e["end"]
+            assert e["md_lord"] in C.PLANETS or e["md_lord"] is None
+    d = report_to_dict(rep)
+    assert d["best_periods"]["education"] and d["best_periods"]["career"]

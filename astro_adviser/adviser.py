@@ -63,6 +63,8 @@ class AdviceReport:
     bhava_bala: object = None
     phala_timeline: object = None
     ishta_ranking: list = field(default_factory=list)
+    education_best: list = field(default_factory=list)
+    career_best: list = field(default_factory=list)
 
 
 def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceReport:
@@ -106,6 +108,11 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
     phala_timeline = _dasha_phala_timeline(tree, shadbala, now)
     ishta_rank = sbmod.ishta_ranking(shadbala)
 
+    # Combined "best periods": KP fructification windows overlaid with the
+    # Ishta/Kashta phala of the running Mahadasha.
+    education_best = _best_periods(kp_chart, tree, shadbala, now, "education")
+    career_best = _best_periods(kp_chart, tree, shadbala, now, "career")
+
     # House-strength notes feed back into the two assessments.
     edu_hs = bhava_bala.group_strength([4, 5, 9])
     education.shadbala_notes.append(
@@ -122,7 +129,38 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
         yogas=yogas, edu_remedies=edu_remedies, career_remedies=career_remedies,
         transit=transit_report, shadbala=shadbala, bhava_bala=bhava_bala,
         phala_timeline=phala_timeline, ishta_ranking=ishta_rank,
+        education_best=education_best, career_best=career_best,
     )
+
+
+def _best_periods(kp_chart, tree, sb, now, domain, horizon_years=15, max_windows=6):
+    """
+    Overlay the KP fructification windows for ``domain`` with the Ishta/Kashta
+    phala of the Mahadasha running at each window, producing ranked "best
+    periods" for education growth or career growth.
+    """
+    houses = [4, 9, 11] if domain == "education" else [2, 10, 11]
+    windows = faq.fructification_windows(
+        kp_chart, tree, houses, now, horizon_years=horizon_years,
+        max_windows=max_windows, require_levels=2)
+    out = []
+    for w in windows:
+        md, _, _ = dasha.find_running(tree, w.start)
+        md_lord = md.lord if md else None
+        ishta, kashta, verdict = sbmod.period_phala(sb, md_lord) if md_lord else (None, None, "-")
+        benefic = ishta is not None and ishta >= kashta
+        prime = benefic and ("benefic" in verdict.lower())
+        quality = "Prime" if prime else ("Favourable" if benefic else "Workable")
+        out.append({
+            "chain": w.chain,
+            "start": w.start.date().isoformat(),
+            "end": w.end.date().isoformat(),
+            "md_lord": md_lord,
+            "phala": verdict,
+            "quality": quality,
+            "note": w.note,
+        })
+    return out
 
 
 def _dasha_phala_timeline(tree, sb, now, count=7):
@@ -312,4 +350,8 @@ def report_to_dict(rep: AdviceReport) -> dict:
         "bhava_bala": _bhava(rep.bhava_bala),
         "ishta_ranking": rep.ishta_ranking,
         "phala_timeline": rep.phala_timeline,
+        "best_periods": {
+            "education": rep.education_best,
+            "career": rep.career_best,
+        },
     }

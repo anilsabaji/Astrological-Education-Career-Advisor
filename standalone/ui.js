@@ -55,6 +55,7 @@ function render(rep){
   $("eduPanel").innerHTML=renderEducation(rep);
   $("carPanel").innerHTML=renderCareer(rep);
   $("faqPanel").innerHTML=renderFaq(rep);
+  $("bestPanel").innerHTML=renderBest(rep);
   $("sbPanel").innerHTML=renderShadbala(rep);
   $("chartPanel").innerHTML=renderCharts(rep);
 }
@@ -138,6 +139,32 @@ function notesCols(left,leftTitle,right,rightTitle,yogas,yogaLabel){
     <div><h4>${rightTitle}</h4><ul>${li(right)}</ul>
     ${yogas&&yogas.length?`<p class="yoga-line">${yogaLabel}: ${esc(yogas.join(", "))}</p>`:""}</div></div>`;}
 
+function svgBars(items,maxval,marker){const width=580,rowH=26,labelW=82,valW=46,pad=8;
+  const barArea=width-labelW-valW-pad,height=items.length*rowH+8;maxval=maxval||1;
+  let s=`<svg viewBox="0 0 ${width} ${height}" class="bar-svg" preserveAspectRatio="xMinYMin meet">`;
+  if(marker!=null){const mx=labelW+barArea*Math.min(marker/maxval,1);s+=`<line x1="${mx.toFixed(1)}" y1="2" x2="${mx.toFixed(1)}" y2="${height-6}" class="bar-marker"/>`;}
+  items.forEach((it,i)=>{const y=i*rowH+4,w=Math.max(2,barArea*Math.min(it.value/maxval,1));
+    s+=`<text x="0" y="${y+15}" class="bar-label">${esc(it.label)}</text><rect x="${labelW}" y="${y+3}" width="${w.toFixed(1)}" height="${rowH-9}" rx="3" fill="${it.color}"/><text x="${(labelW+w+5).toFixed(1)}" y="${y+15}" class="bar-val">${it.value}</text>`;});
+  return s+`</svg>`;}
+function shadbalaSvg(sb){const items=sb.ranking.map(p=>{const s=sb.planets[p];
+  const c=(s.sufficient&&s.benefic)?"#34c98a":s.sufficient?"#e8a13a":"#e8607a";return {label:p,value:s.rupas,color:c};});
+  const maxv=Math.max(...sb.ranking.map(p=>sb.planets[p].rupas),1);
+  const avgReq=sb.ranking.reduce((a,p)=>a+sb.planets[p].required,0)/sb.ranking.length;
+  return svgBars(items,Math.round(maxv+0.5),avgReq);}
+function bhavaSvg(bb){const edu=new Set([4,5,9]),car=new Set([2,10,11]);
+  const items=bb.ranking.map(h=>{const s=bb.houses[h];const c=edu.has(h)?"#8b7bf0":car.has(h)?"#f4b740":"#5a6ea0";
+    return {label:`H${s.house} (${s.lord.slice(0,2)})`,value:s.rupas,color:c};});
+  const maxv=Math.max(...bb.ranking.map(h=>bb.houses[h].rupas),1);return svgBars(items,Math.round(maxv+0.5));}
+function bestTable(title,rows){let h=`<h3>${esc(title)}</h3>`;
+  if(!rows||!rows.length)return h+`<p class="muted">No clear window within the look-ahead horizon.</p>`;
+  h+=`<table class="tl-table"><thead><tr><th>Window (MD-AD-PD)</th><th>From</th><th>To</th><th>Dasha era</th><th>Quality</th></tr></thead><tbody>`;
+  rows.forEach(e=>{h+=`<tr><td class="chain">${e.chain}</td><td>${e.start}</td><td>${e.end}</td><td>${e.mdLord} &middot; ${esc(e.phala)}</td><td><span class="qual qual-${e.quality.toLowerCase()}">${e.quality}</span></td></tr>`;});
+  return h+`</tbody></table>`;}
+function renderBest(rep){return `<div class="card"><h2>&#11088; Best Periods &mdash; Dasha Phala &times; KP Windows</h2>
+  <p class="muted">Where KP fructification windows (significators active) overlap a benefic Ishta/Kashta dasha era.
+  <strong>Prime</strong> = benefic era + active significators; <strong>Favourable</strong> = benefic era; <strong>Workable</strong> = needs extra effort.</p>
+  ${bestTable("Education growth",rep.educationBest)}${bestTable("Career growth",rep.careerBest)}</div>`;}
+
 function sbNotesBlock(notes){if(!notes||!notes.length)return "";
   return `<h3>Planetary strength (Shadbala)</h3><ul class="sb-notes">`+notes.map(n=>`<li>${esc(n)}</li>`).join("")+`</ul>`;}
 
@@ -170,6 +197,8 @@ function renderShadbala(rep){const sb=rep.shadbala;if(!sb)return "";
   let h=`<div class="card"><h2>&#9878; Shadbala &mdash; Six-fold Planetary Strength</h2>
     <p class="muted">Strength in <em>rupas</em> (a planet needs its required minimum to deliver its promise).
     Ishta = benefic result, Kashta = strained. Motion (speed/direction) feeds Cheshta Bala; declination feeds Ayana Bala.</p>
+    <div class="chart-wrap">${shadbalaSvg(sb)}</div>
+    <p class="chart-key"><span class="k g"></span> sufficient &amp; Ishta <span class="k a"></span> sufficient <span class="k r"></span> below required &nbsp;|&nbsp; dashed line = average required.</p>
     <table class="planet-table sb-table"><thead><tr>
       <th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Cheshta</th><th>Naisarg.</th><th>Drik</th>
       <th>Rupas</th><th>Req</th><th>Status</th><th>Result</th><th>Motion</th><th>Decl.</th></tr></thead><tbody>`;
@@ -185,6 +214,8 @@ function renderShadbala(rep){const sb=rep.shadbala;if(!sb)return "";
     <h3>Bhava Bala &mdash; House Strengths</h3>
     <p class="muted">Strength of each bhava in rupas, led by the Bhavadhipati Bala (Shadbala of the house lord).
     Education houses are 4/5/9; career houses 2/10/11.</p>
+    <div class="chart-wrap">${rep.bhavaBala?bhavaSvg(rep.bhavaBala):""}</div>
+    <p class="chart-key"><span class="k p"></span> education (4/5/9) <span class="k y"></span> career (2/10/11) <span class="k n"></span> other</p>
     <table class="planet-table sb-table"><thead><tr><th>House</th><th>Lord</th><th>Bhavadhipati</th><th>Occupant</th><th>Aspect</th><th>Rupas</th></tr></thead><tbody>`
     +(rep.bhavaBala?rep.bhavaBala.ranking.map(hh=>{const s=rep.bhavaBala.houses[hh];
       return `<tr><td>House ${s.house}</td><td>${s.lord}</td><td>${s.bhavadhipati}</td><td>${s.occupant}</td><td>${s.drishti}</td><td><b>${s.rupas}</b></td></tr>`;}).join(""):"")

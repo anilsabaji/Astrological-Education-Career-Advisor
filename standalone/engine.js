@@ -535,6 +535,12 @@ function dashaPhala(tree,sb,now,count){count=count||7;const maha=[];let curMd=nu
   const antar=[];if(curMd)for(const ad of curMd.children){if(ad.end<now)continue;const ph=periodPhala(sb,ad.lord);
     antar.push({lord:curMd.lord+"-"+ad.lord,start:fmtDate(ad.start),end:fmtDate(ad.end),ishta:ph.ishta,kashta:ph.kashta,verdict:ph.verdict});}
   return {mahadasha:maha,antardasha:antar};}
+function bestPeriods(kpCh,tree,sb,now,domain){const houses=domain==="education"?[4,9,11]:[2,10,11];
+  const wins=fructificationWindows(kpCh,tree,houses,now,15,6,2);
+  return wins.map(w=>{const r=findRunning(tree,w.start);const lord=r.md?r.md.lord:null;
+    const ph=lord?periodPhala(sb,lord):{ishta:null,kashta:null,verdict:"-"};
+    const benefic=ph.ishta!=null&&ph.ishta>=ph.kashta;const prime=benefic&&ph.verdict.toLowerCase().includes("benefic");
+    return {chain:w.chain,start:fmtDate(w.start),end:fmtDate(w.end),mdLord:lord,phala:ph.verdict,quality:prime?"Prime":benefic?"Favourable":"Workable"};});}
 
 // ---- advice fusion --------------------------------------------------------
 function weightedPlanets(sources){const score={};for(const [planets,weight] of sources)
@@ -715,6 +721,8 @@ function buildReport(birth){
   const bhavaBala=computeBhavaBala(parCh,shadbala);
   const phala=dashaPhala(tree,shadbala,nowWall,7);
   const ishtaRank=ishtaRanking(shadbala);
+  const educationBest=bestPeriods(kpCh,tree,shadbala,nowWall,"education");
+  const careerBest=bestPeriods(kpCh,tree,shadbala,nowWall,"career");
   const eduHS=bhavaBala.groupStrength([4,5,9]);
   education.shadbalaNotes.push(`Bhava Bala: the education houses (4th, 5th, 9th) average ${Math.round(eduHS*100)/100} rupas - ${houseStrengthLabel(eduHS)}.`);
   const carHS=bhavaBala.groupStrength([2,10,11]);
@@ -727,7 +735,7 @@ function buildReport(birth){
   return {birth,kpCh,parCh,tree,
     current:{md:md?md.lord:null,ad:ad?ad.lord:null,pd:pd?pd.lord:null,
       mdPeriod:md?fmtPeriod(md):"-",adPeriod:ad?fmtPeriod(md,ad):"-",pdPeriod:pd?fmtPeriod(md,ad,pd):"-"},
-    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala,bhavaBala,phala,ishtaRank};
+    upcoming:upcomingMahadashas(tree,nowWall,6),education,career,faqs,yogas,eduRemedies,careerRemedies,transit,shadbala,bhavaBala,phala,ishtaRank,educationBest,careerBest};
 }
 
 root.AstroEngine={buildReport,computeChart,computeShadbala,PLANETS,PSHORT,navamsaSign,dasamsaSign,siddhamsaSign,norm360};

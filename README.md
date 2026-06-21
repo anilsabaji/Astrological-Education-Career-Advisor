@@ -63,6 +63,13 @@ timeline** annotates the running and upcoming Mahadashas (and the current
 Mahadasha's Antardashas) as benefic, mixed or challenging, so you can see which
 periods are most favourable.
 
+**Best Periods** overlays the KP fructification windows (when the education or
+career significators are active) with the Ishta/Kashta dasha era, ranking each
+window as **Prime** (benefic era + active significators), **Favourable** or
+**Workable**. The web and browser editions also draw **SVG bar charts** of the
+Shadbala (with the required-strength marker) and the Bhava Bala (education and
+career houses highlighted).
+
 ### Divisional charts (Vargas)
 Fine judgement uses the divisional charts, not just the rasi (D-1):
 
@@ -155,7 +162,7 @@ curl "http://localhost:8000/api/faq/when_job?dob=1990-08-15&tob=10:30&latitude=2
 ## Tests
 
 ```bash
-python -m pytest        # 72 tests: dasha, sub-lords, dignities, vargas, shadbala, bhava bala, KP, advice, FAQ, transits, API
+python -m pytest        # 73 tests: dasha, sub-lords, dignities, vargas, shadbala, bhava bala, KP, advice, FAQ, transits, API
 ```
 
 ---
