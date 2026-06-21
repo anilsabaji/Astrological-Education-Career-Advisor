@@ -175,53 +175,85 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 .pdf-swatches span{width:26px;height:10px;border-radius:3px;}
 
 @media print{
-  @page{margin:12mm;}
-  html,body{background:#fff !important;color:#15182b !important;
+  @page{size:A4;margin:14mm 12mm 16mm 12mm;}
+  html,body{background:#fff !important;color:#15182b !important;font-size:9.5pt !important;line-height:1.45 !important;
     -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  /* constrain to A4 printable width (≈170mm) */
+  .wrap{max-width:100% !important;padding:0 !important;}
   /* vibrant masthead */
   .site-header{position:static;border:none;
-    background:linear-gradient(90deg,#6a2cf5 0%,#b14cff 45%,#ff7ac3 100%) !important;padding:8px 0;}
+    background:linear-gradient(90deg,#6a2cf5 0%,#b14cff 45%,#ff7ac3 100%) !important;padding:6px 10px;}
+  .site-header .wrap{padding:0 6px !important;}
   .site-header,.brand,.tagline{color:#fff !important;}
   .brand .logo{color:#ffe08a !important;}
   .no-print,.tabs,.actions,#inputCard,.hint,.pdf-cta{display:none !important;}
   .print-only{display:block !important;}
   .tab-panel{display:block !important;page-break-inside:auto;}
-  /* cards with a vibrant colour accent */
+  /* cards */
   .card{box-shadow:none;border:1px solid #ece8fb;border-top:4px solid #8b5cf6;
-    background:#fff !important;page-break-inside:avoid;margin:10px 0;border-radius:10px;}
-  /* section title banners */
+    background:#fff !important;page-break-inside:avoid;margin:8px 0;padding:10px 12px;border-radius:8px;}
   .card>h2{background:linear-gradient(90deg,#6a2cf5,#9a5cff) !important;color:#fff !important;
-    border:none !important;padding:8px 12px;border-radius:8px;margin:-2px 0 12px;font-size:1.12rem;}
-  .card h3{color:#7c3aed !important;border-bottom:2px solid #ffc24d;display:inline-block;padding-bottom:2px;}
-  .card h4{color:#c01f8a !important;}
+    border:none !important;padding:6px 10px;border-radius:6px;margin:-2px 0 8px;font-size:1rem;}
+  .card h3{color:#7c3aed !important;border-bottom:2px solid #ffc24d;display:inline-block;padding-bottom:2px;font-size:.9rem;}
+  .card h4{color:#c01f8a !important;font-size:.85rem;}
   .report-head .meta,.muted,.sub,.reco-meta,.two-col li,.varga-notes li,.tl-table .why,
-  .trigger-list li,.rem-head span,.sb-notes li,.disclaimer,.age-note{color:#555a73 !important;}
-  /* vibrant tables */
+  .trigger-list li,.rem-head span,.sb-notes li,.disclaimer,.age-note{color:#555a73 !important;font-size:8.5pt !important;}
+  /* force all grids to single column so nothing overflows */
+  .grid-form,.two-col,.chart-tables,.dasha-chips,.transit-grid,.varga-head,.rem-body,.coords{
+    display:block !important;}
+  .dasha-chips>*,.transit-grid>*,.varga-head>*{display:inline-block;margin:3px 4px;vertical-align:top;width:auto;}
+  .chip{padding:8px 10px;display:inline-block;width:30%;min-width:90px;vertical-align:top;}
+  .timeline-bar{display:flex !important;flex-wrap:wrap !important;}
+  .tl-seg{flex:0 1 auto;min-width:70px;}
+  /* tables: shrink font, auto width, word-break, horizontal scroll fallback */
+  .planet-table,.tl-table,.sb-table{font-size:7.5pt !important;width:100% !important;table-layout:fixed !important;word-break:break-word !important;}
+  .planet-table th,.planet-table td,.tl-table th,.tl-table td,.sb-table th,.sb-table td{
+    padding:3px 4px !important;overflow:hidden;text-overflow:ellipsis;}
   .planet-table th,.tl-table th{background:linear-gradient(90deg,#ede9fe,#fde6f3) !important;color:#6a2cf5 !important;}
   .planet-table tr:nth-child(even) td,.tl-table tr:nth-child(even) td{background:#faf8ff !important;}
-  .tl-table .chain{color:#c08a00 !important;font-weight:700;}
+  .tl-table .chain{color:#c08a00 !important;font-weight:700;font-size:7.5pt !important;}
+  .tl-table .why{max-width:38mm;font-size:7pt !important;}
+  /* SVG charts: constrain to page width */
+  .chart-wrap,.ribbon-wrap{padding:4px 0 !important;overflow:hidden !important;}
+  .bar-svg,.ribbon-svg{max-width:100% !important;height:auto !important;}
+  /* chart-tables side-by-side, each 48% */
+  .chart-tables{display:grid !important;grid-template-columns:1fr 1fr !important;gap:6px !important;}
   /* tinted panels */
   .chip,.tr-card,.vk,.reco-list li,.remedy,.varga,.faq-item,.tl-seg,.chart-wrap,.ishta-chip{
     background:#faf8ff !important;border-color:#ece8fb !important;}
-  .chip b,.tr-card span,.vk b{color:#6a2cf5 !important;}
+  .chip b,.tr-card span,.vk b{color:#6a2cf5 !important;font-size:10pt !important;}
+  .chip small,.tr-card small{font-size:7pt !important;}
   .reco-list li::before{background:linear-gradient(135deg,#6a2cf5,#ff7ac3) !important;color:#fff !important;}
-  .bar{background:#eee9fb !important;}.bar span{background:linear-gradient(90deg,#7c3aed,#ff7ac3) !important;}
-  .lean{background:#fff7e6 !important;border-left:4px solid #f59e0b !important;}
+  .reco-list li{padding-left:36px !important;margin:4px 0 !important;padding-top:6px;padding-bottom:6px;}
+  .bar{background:#eee9fb !important;height:5px !important;}.bar span{background:linear-gradient(90deg,#7c3aed,#ff7ac3) !important;}
+  .lean{background:#fff7e6 !important;border-left:4px solid #f59e0b !important;padding:6px 10px !important;font-size:8.5pt !important;}
   /* solid vibrant badges */
+  .badge{padding:3px 8px !important;font-size:7.5pt !important;border-radius:12px !important;}
   .badge.good{background:#16a34a !important;color:#fff !important;border:none !important;}
   .badge.warn{background:#f59e0b !important;color:#3a2300 !important;border:none !important;}
   .badge.info{background:#7c3aed !important;color:#fff !important;border:none !important;}
+  .qual{padding:2px 7px !important;font-size:7pt !important;}
   .qual-prime{background:#16a34a !important;color:#fff !important;border:none !important;}
   .qual-favourable{background:#7c3aed !important;color:#fff !important;border:none !important;}
   .qual-workable{background:#f59e0b !important;color:#3a2300 !important;border:none !important;}
   .phala-table td.pg,.sb-table td.ok,.yoga-line,.vargottama{color:#16a34a !important;}
   .phala-table td.pb{color:#e11d6b !important;}
   .phala-table td.pm,.sb-table td.low{color:#c2740a !important;}
-  /* expand collapsibles for the printed report */
-  details{display:block !important;}details>summary{list-style:none;}.faq-body{display:block !important;}
-  .faq-item summary .v{color:#c08a00 !important;}
-  .site-footer{border-top:3px solid #ffc24d;}
+  /* FAQ: shrink, expand, avoid page break */
+  details{display:block !important;}details>summary{list-style:none;font-size:8.5pt !important;}
+  .faq-body{display:block !important;font-size:8pt !important;}
+  .faq-item{page-break-inside:avoid;margin:5px 0 !important;}
+  .faq-item summary .q{font-size:8.5pt !important;}.faq-item summary .v{color:#c08a00 !important;font-size:7.5pt !important;}
+  /* remedy grid */
+  .rem-body{display:grid !important;grid-template-columns:1fr 1fr !important;gap:2px 8px !important;font-size:7.5pt !important;}
+  /* footer */
+  .site-footer{border-top:3px solid #ffc24d;margin-top:6px !important;}
+  .site-footer p,.dev-credit{font-size:8pt !important;}
   .dev-credit{color:#15182b !important;}.dev-credit a{color:#6a2cf5 !important;}
+  .foot-note{font-size:7pt !important;}
+  /* shadbala notes */
+  .sb-notes li{font-size:7.5pt !important;}
+  .ishta-rank{gap:4px !important;}.ishta-chip{font-size:7pt !important;padding:2px 6px !important;}
 }
 
 
