@@ -12,6 +12,7 @@ timelines and FAQ answers.
 from __future__ import annotations
 
 import datetime as dt
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Query, Request
@@ -212,7 +213,8 @@ def _resolve_birth(name, dob, tob, city, latitude, longitude, tz) -> BirthData:
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse(
-        request, "index.html", {"cities": sorted(CITIES.keys())}
+        request, "index.html",
+        {"cities": sorted(CITIES.keys()), "cities_json": json.dumps(CITIES)}
     )
 
 

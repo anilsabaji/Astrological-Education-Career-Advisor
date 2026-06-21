@@ -37,7 +37,7 @@
         </div>
 
         <fieldset class="coords">
-            <legend>Or enter exact coordinates</legend>
+            <legend>Coordinates (auto-filled from the city, or enter your own)</legend>
             <div class="field">
                 <label for="latitude">Latitude</label>
                 <input type="text" id="latitude" name="latitude" placeholder="28.6139">
@@ -56,9 +56,23 @@
             <button type="submit">Generate advice &rarr;</button>
         </div>
     </form>
-    <p class="hint">Tip: choose a city for an instant timezone &amp; coordinates,
-    or type your own latitude/longitude and UTC offset for precision.</p>
+    <p class="hint">Tip: choose a city to auto-capture its latitude, longitude and
+    timezone, or type your own for precision.</p>
 </section>
+
+<script>
+  var CITY_COORDS = {{ cities_json|safe }};
+  (function () {
+    var city = document.getElementById("city");
+    if (!city) return;
+    city.addEventListener("change", function () {
+      var c = CITY_COORDS[this.value];
+      document.getElementById("latitude").value = c ? c[0] : "";
+      document.getElementById("longitude").value = c ? c[1] : "";
+      document.getElementById("tz").value = c ? c[2] : "";
+    });
+  })();
+</script>
 
 <section class="card features">
     <h2>What you get</h2>

@@ -16,6 +16,13 @@ const CITIES={
 document.addEventListener("DOMContentLoaded",function(){
   const sel=$("city");
   Object.keys(CITIES).sort().forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o);});
+  // Auto-capture latitude / longitude / timezone when a city is chosen.
+  sel.addEventListener("change",function(){
+    if(this.value&&CITIES[this.value]){
+      const [lat,lon,tz]=CITIES[this.value];
+      $("lat").value=lat; $("lon").value=lon; $("tz").value=tz;
+    }else{ $("lat").value=""; $("lon").value=""; $("tz").value=""; }
+  });
   $("birthForm").addEventListener("submit",function(e){e.preventDefault();generate();});
 });
 
