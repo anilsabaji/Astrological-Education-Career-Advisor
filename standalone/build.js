@@ -48,6 +48,7 @@ ${css}
       </fieldset>
       <div class="actions"><button type="submit">Generate advice &rarr;</button></div>
     </form>
+    <div id="usageCounter" class="usage-counter"></div>
     <p class="err" id="formErr"></p>
     <p class="hint">Tip: type any city worldwide and pick from the suggestions &mdash; the
     coordinates and the daylight-aware timezone offset are filled in automatically. The

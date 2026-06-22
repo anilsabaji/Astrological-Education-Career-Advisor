@@ -33,6 +33,27 @@ app = FastAPI(title="Astro Adviser - Education & Career (KP + Parashara)")
 app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 templates = Jinja2Templates(directory=str(BASE / "templates"))
 
+# ---------------------------------------------------------------------------
+# Usage counter (persistent, file-based)
+# ---------------------------------------------------------------------------
+_COUNTER_FILE = BASE / ".usage_count"
+
+
+def _read_counter() -> int:
+    try:
+        return int(_COUNTER_FILE.read_text().strip())
+    except Exception:
+        return 0
+
+
+def _increment_counter() -> int:
+    n = _read_counter() + 1
+    try:
+        _COUNTER_FILE.write_text(str(n))
+    except Exception:
+        pass
+    return n
+
 
 def _svg_bars(items, maxval, marker=None, width=580, row_h=26):
     """Render a horizontal bar chart as an inline SVG string.
@@ -200,7 +221,8 @@ def _resolve_birth(name, dob, tob, city, latitude, longitude, tz) -> BirthData:
 def index(request: Request):
     return templates.TemplateResponse(
         request, "index.html",
-        {"cities": sorted(CITIES.keys()), "cities_json": json.dumps(CITIES)}
+        {"cities": sorted(CITIES.keys()), "cities_json": json.dumps(CITIES),
+         "usage_count": _read_counter()}
     )
 
 
@@ -216,6 +238,7 @@ def report(
     tz: str = Form(""),
 ):
     birth = _resolve_birth(name, dob, tob, city, latitude, longitude, tz)
+    usage_count = _increment_counter()
 
     rep = build_report(birth)
     upcoming = upcoming_mahadashas(rep.dasha_tree, dt.datetime.now(), count=6)
@@ -256,6 +279,7 @@ def report(
         "life_stage": rep.life_stage,
         "ribbon_svg": _phala_ribbon_svg(rep.phala_timeline["mahadasha"],
                                         rep.education_best, rep.career_best),
+        "usage_count": usage_count,
         "kp_asc": rep.kp_chart.asc_lordship,
         "par_asc": rep.par_chart.asc_lordship,
         "kp_ascdeg": f"{norm360(rep.kp_chart.ascendant) % 30:.2f}",

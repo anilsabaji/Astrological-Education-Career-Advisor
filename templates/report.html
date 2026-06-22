@@ -115,6 +115,9 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
     <a class="back" href="/">&larr; New chart</a>
     <button class="pdf-btn no-print" onclick="window.print()"
             style="margin-left:14px;padding:9px 18px;font-size:.95rem;">&#128424; Save as PDF</button>
+    {% if usage_count %}
+    <span class="usage-counter no-print">&#9889; Charts generated: <strong>{{ usage_count }}</strong></span>
+    {% endif %}
     <p class="hint no-print" style="margin-top:8px;">For best results choose
     <strong>"Save as PDF"</strong> and enable <strong>"Background graphics"</strong> so the
     vibrant colours are preserved.</p>

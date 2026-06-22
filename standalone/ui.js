@@ -45,7 +45,14 @@ document.addEventListener("DOMContentLoaded",function(){
   $("dob").addEventListener("change",function(){
     if(window._selZone){const o=tzOffsetForBirth(window._selZone);if(o!=null)$("tz").value=o;}
   });
+  // Show usage counter on load.
+  try{updateCounter(parseInt(localStorage.getItem("astro_usage_count")||"0",10));}catch(e){}
 });
+
+function updateCounter(n){
+  const el=$("usageCounter");
+  if(el) el.innerHTML='<span class="counter-icon">&#9889;</span> Charts generated: <strong>'+n+'</strong>';
+}
 
 // ---- worldwide city typeahead (Open-Meteo geocoding) ----------------------
 var _cityTimer=null;
@@ -105,6 +112,12 @@ function tzOffsetForBirth(timeZone){
 
 function generate(){
   const errEl=$("formErr");errEl.textContent="";
+  // Usage counter (persisted in localStorage).
+  try{
+    let count=parseInt(localStorage.getItem("astro_usage_count")||"0",10)+1;
+    localStorage.setItem("astro_usage_count",String(count));
+    updateCounter(count);
+  }catch(e){/* localStorage blocked */}
   try{
     const name=$("name").value||"Seeker";
     const dob=$("dob").value, tob=$("tob").value;

@@ -56,6 +56,9 @@
     <p class="hint">Tip: type any city worldwide and pick from the suggestions &mdash; the
     latitude, longitude and daylight-aware timezone offset are captured for you. You can
     also enter coordinates by hand for precision.</p>
+    {% if usage_count %}
+    <div class="usage-counter">&#9889; Charts generated: <strong>{{ usage_count }}</strong></div>
+    {% endif %}
 </section>
 
 <script>

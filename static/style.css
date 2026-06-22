@@ -324,3 +324,7 @@ button:hover { filter: brightness(1.05); }
   .sb-notes li{font-size:7.5pt !important;}
   .ishta-rank{gap:4px !important;}.ishta-chip{font-size:7pt !important;padding:2px 6px !important;}
 }
+
+/* usage counter */
+.usage-counter{margin:10px 0 4px;padding:6px 14px;display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:20px;font-size:.85rem;color:var(--muted);}
+.usage-counter strong{color:var(--accent);font-size:1rem;}

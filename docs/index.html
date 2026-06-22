@@ -44,6 +44,9 @@ button:hover{filter:brightness(1.05);}
 button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--accent2);}
 .hint{color:var(--muted);font-size:.85rem;}
 .err{color:var(--bad);font-weight:600;}
+.usage-counter{margin:10px 0 4px;padding:6px 14px;display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:20px;font-size:.85rem;color:var(--muted);}
+.usage-counter strong{color:var(--accent);font-size:1rem;}
+.counter-icon{margin-right:4px;}
 
 /* tabs */
 .tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:6px;}
@@ -305,6 +308,7 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
       </fieldset>
       <div class="actions"><button type="submit">Generate advice &rarr;</button></div>
     </form>
+    <div id="usageCounter" class="usage-counter"></div>
     <p class="err" id="formErr"></p>
     <p class="hint">Tip: type any city worldwide and pick from the suggestions &mdash; the
     coordinates and the daylight-aware timezone offset are filled in automatically. The
@@ -1405,7 +1409,14 @@ document.addEventListener("DOMContentLoaded",function(){
   $("dob").addEventListener("change",function(){
     if(window._selZone){const o=tzOffsetForBirth(window._selZone);if(o!=null)$("tz").value=o;}
   });
+  // Show usage counter on load.
+  try{updateCounter(parseInt(localStorage.getItem("astro_usage_count")||"0",10));}catch(e){}
 });
+
+function updateCounter(n){
+  const el=$("usageCounter");
+  if(el) el.innerHTML='<span class="counter-icon">&#9889;</span> Charts generated: <strong>'+n+'</strong>';
+}
 
 // ---- worldwide city typeahead (Open-Meteo geocoding) ----------------------
 var _cityTimer=null;
@@ -1465,6 +1476,12 @@ function tzOffsetForBirth(timeZone){
 
 function generate(){
   const errEl=$("formErr");errEl.textContent="";
+  // Usage counter (persisted in localStorage).
+  try{
+    let count=parseInt(localStorage.getItem("astro_usage_count")||"0",10)+1;
+    localStorage.setItem("astro_usage_count",String(count));
+    updateCounter(count);
+  }catch(e){/* localStorage blocked */}
   try{
     const name=$("name").value||"Seeker";
     const dob=$("dob").value, tob=$("tob").value;
