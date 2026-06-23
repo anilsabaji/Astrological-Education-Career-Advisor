@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Manual - Astro Adviser (KP + Parashara)</title>
+<style>
+:root{--bg:#0f1020;--bg2:#15172b;--card:#1c1f3a;--ink:#e9e9f3;--muted:#a7abc9;
+  --accent:#f4b740;--accent2:#8b7bf0;--line:#2e3252;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;line-height:1.6;
+  background:radial-gradient(1200px 600px at 80% -10%,#25264a 0%,var(--bg) 55%);color:var(--ink);}
+.bar{background:rgba(15,16,32,.9);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
+  backdrop-filter:blur(8px);}
+.bar .in{max-width:920px;margin:0 auto;padding:13px 22px;display:flex;justify-content:space-between;
+  align-items:center;gap:10px;flex-wrap:wrap;}
+.bar a{color:var(--accent2);text-decoration:none;font-weight:600;}
+.bar .logo{color:var(--accent);}
+.pdf-btn{background:linear-gradient(90deg,#7c3aed,#ff7ac3);color:#fff;border:none;border-radius:10px;
+  padding:9px 18px;font-weight:800;cursor:pointer;}
+.wrap{max-width:920px;margin:0 auto;padding:26px 22px 60px;}
+h1{font-size:2rem;margin:.2em 0 .1em;}
+h2{font-size:1.4rem;margin:1.6em 0 .5em;color:#fff;background:linear-gradient(90deg,#6a2cf5,#9a5cff);
+  padding:8px 14px;border-radius:8px;}
+h3{color:var(--accent);margin:1.3em 0 .4em;}
+h4{color:var(--accent2);margin:1.1em 0 .3em;}
+a{color:var(--accent2);}
+p,li{color:#d6d8ea;}
+code{background:#0c0d18;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.92em;color:#ffd479;}
+pre{background:#0c0d18;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;}
+pre code{border:none;background:none;color:#cfe3ff;}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:linear-gradient(90deg,#241f47,#2c2350);color:var(--accent2);}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+blockquote{border-left:3px solid var(--accent);margin:10px 0;padding:6px 14px;color:var(--muted);background:rgba(244,183,64,.06);border-radius:6px;}
+hr{border:none;border-top:1px solid var(--line);margin:26px 0;}
+.foot{color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:30px;padding-top:14px;}
+
+@media print{
+  @page{size:A4;margin:14mm 12mm;}
+  html,body{background:#fff !important;color:#15182b !important;font-size:9.5pt !important;
+    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  .bar,.pdf-btn,.no-print{display:none !important;}
+  .wrap{max-width:100% !important;padding:0 !important;}
+  h2{background:linear-gradient(90deg,#6a2cf5,#9a5cff) !important;color:#fff !important;font-size:1rem;
+    page-break-after:avoid;}
+  h3{color:#7c3aed !important;}h4{color:#c01f8a !important;}
+  p,li,td{color:#222 !important;}
+  table,tr,pre,blockquote{page-break-inside:avoid;}
+  th{background:#ede9fe !important;color:#6a2cf5 !important;}
+  tr:nth-child(even) td{background:#faf8ff !important;}
+  code,pre{background:#f4f3fb !important;color:#5b3fd0 !important;border-color:#e3e0f5 !important;}
+  a{color:#6a2cf5 !important;}
+}
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <span><span class="logo">&#9789;</span> <a href="index.html">&larr; Astro Adviser</a></span>
+  <button class="pdf-btn" onclick="window.print()">&#128424; Save / Print as PDF</button>
+</div></div>
+<div class="wrap">
+<h1 id="technical-manual-astrological-education-career-adviser">Technical Manual — Astrological Education &amp; Career Adviser</h1>
+<p><strong>How the results are derived · what parameters are considered · how each one influences the outcome</strong></p>
+<p><em>Version 1.0 · Developed by Dr. Anil Sabaji, email: anilsabaji@gmail.com</em></p>
+<hr />
+<h2 id="table-of-contents">Table of contents</h2>
+<ol>
+<li><a href="#1-purpose--scope">Purpose &amp; scope</a></li>
+<li><a href="#2-system-architecture">System architecture</a></li>
+<li><a href="#3-astronomical-foundation">Astronomical foundation</a></li>
+<li><a href="#4-the-two-reference-frames-kp-and-parashara-charts">The two reference frames: KP and Parashara charts</a></li>
+<li><a href="#5-lordship-chain--kp-sub-lords">Lordship chain &amp; KP sub-lords</a></li>
+<li><a href="#6-vimshottari-dasha-3-level-timing-engine">Vimshottari Dasha (3-level timing engine)</a></li>
+<li><a href="#7-kp-analysis--significators--cuspal-sub-lords">KP analysis — significators &amp; cuspal sub-lords</a></li>
+<li><a href="#8-parashara-analysis--dignities-house-lords-yogas">Parashara analysis — dignities, house lords, yogas</a></li>
+<li><a href="#9-divisional-charts-vargas">Divisional charts (Vargas)</a></li>
+<li><a href="#10-shadbala--six-fold-planetary-strength">Shadbala — six-fold planetary strength</a></li>
+<li><a href="#11-bhava-bala--ishtakashta-phala">Bhava Bala &amp; Ishta/Kashta phala</a></li>
+<li><a href="#12-education-assessment--parameters--influence">Education assessment — parameters &amp; influence</a></li>
+<li><a href="#13-career-assessment--parameters--influence">Career assessment — parameters &amp; influence</a></li>
+<li><a href="#14-best-periods-overlay-kp-windows--dasha-phala--age">Best Periods overlay (KP windows × dasha phala × age)</a></li>
+<li><a href="#15-faq-engine--verdicts--timelines">FAQ engine — verdicts &amp; timelines</a></li>
+<li><a href="#16-transit-gochar-triggers">Transit (Gochar) triggers</a></li>
+<li><a href="#17-remedial-suggestions">Remedial suggestions</a></li>
+<li><a href="#18-the-standalone-browser-edition">The standalone browser edition</a></li>
+<li><a href="#19-worked-example--reproducibility">Worked example &amp; reproducibility</a></li>
+<li><a href="#20-parameter-influence--master-summary">Parameter influence — master summary</a></li>
+<li><a href="#21-limitations--disclaimer">Limitations &amp; disclaimer</a></li>
+</ol>
+<hr />
+<h2 id="1-purpose-scope">1. Purpose &amp; scope</h2>
+<p>The utility advises on the <strong>right education field</strong> and the <strong>right career field</strong> (for both
+<em>earning</em> and <em>satisfaction</em>), and answers the questions most commonly put to an astrologer,
+each with a <strong>timeline</strong>. It deliberately fuses <strong>two independent astrological systems</strong> so the
+advice reflects agreement (or disagreement) between them:</p>
+<ul>
+<li><strong>KP (Krishnamurti Paddhati)</strong> — a precise, sub-lord-driven system used here mainly for the
+  <em>promise</em> of a result and its <em>timing</em>.</li>
+<li><strong>Parashara (classical Vedic)</strong> — used for <em>dignity</em>, <em>yogas</em>, <em>divisional charts</em> and
+  <em>planetary strength (Shadbala)</em>.</li>
+</ul>
+<p>Every result is <strong>derived from the birth chart by deterministic rules</strong> (no machine learning, no
+randomness). The same birth data always produces the same output.</p>
+<hr />
+<h2 id="2-system-architecture">2. System architecture</h2>
+<pre><code>Birth data (date, time, lat, lon, tz)
+        │
+        ▼
+ ephemeris.py ──► two Chart objects:  KP chart  +  Parashara chart
+        │
+        ├─► dasha.py        3-level Vimshottari tree (from the Moon)
+        ├─► kp.py           significators, cuspal sub-lords (KP chart)
+        ├─► parashara.py    dignities, yogas, vargas (Parashara chart)
+        ├─► varga.py        divisional-chart geometry (D-2 … D-30)
+        ├─► shadbala.py     six-fold strength + Bhava Bala + Ishta/Kashta
+        │
+        ▼
+ advice.py  ──► fuses KP + Parashara + Shadbala into ranked field advice
+ faq.py     ──► FAQ answers with dasha windows
+ remedies.py / transits.py
+        │
+        ▼
+ adviser.py ──► AdviceReport (orchestrator) + JSON serialization
+        │
+        ├─► app.py            FastAPI web app + JSON API + usage counter
+        └─► docs/index.html   self-contained browser edition (JS port)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>constants.py</code></td>
+<td>All reference data: planets, signs &amp; lords, 27 nakshatras, Vimshottari years, dignities, karakas, house groups, field→planet mappings</td>
+</tr>
+<tr>
+<td><code>ephemeris.py</code></td>
+<td>Swiss-Ephemeris chart, sub-lord computation, Placidus cusps, speed &amp; declination</td>
+</tr>
+<tr>
+<td><code>dasha.py</code></td>
+<td>3-level Vimshottari dasha, running-period lookup, fructification scan</td>
+</tr>
+<tr>
+<td><code>kp.py</code></td>
+<td>KP four-step significators, houses-signified, cuspal sub-lord (CSL) judgement</td>
+</tr>
+<tr>
+<td><code>parashara.py</code></td>
+<td>Dignity/strength, house-lord placement, yogas, D-9/D-10/D-24 analysis</td>
+</tr>
+<tr>
+<td><code>varga.py</code></td>
+<td>Divisional-sign formulae and the <code>VargaChart</code> builder</td>
+</tr>
+<tr>
+<td><code>shadbala.py</code></td>
+<td>Six balas, Bhava Bala, Ishta/Kashta phala, strength factors</td>
+</tr>
+<tr>
+<td><code>advice.py</code></td>
+<td>Combines all of the above into ranked education/career recommendations</td>
+</tr>
+<tr>
+<td><code>faq.py</code></td>
+<td>The 11 FAQs with KP-promise + dasha timeline</td>
+</tr>
+<tr>
+<td><code>remedies.py</code></td>
+<td>Upaya for weak/afflicted key planets</td>
+</tr>
+<tr>
+<td><code>transits.py</code></td>
+<td>Slow-planet transit triggers, double-transit, Sade Sati</td>
+</tr>
+<tr>
+<td><code>adviser.py</code></td>
+<td>Orchestrates everything; best-periods overlay; age awareness; JSON</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-astronomical-foundation">3. Astronomical foundation</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Choice</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ephemeris</strong></td>
+<td>Swiss Ephemeris (<code>pyswisseph</code>), Moshier model (<code>FLG_MOSEPH</code>)</td>
+<td>Sub-arc-minute planetary positions with <strong>no external data files</strong></td>
+</tr>
+<tr>
+<td><strong>Zodiac</strong></td>
+<td><strong>Sidereal</strong> (<code>FLG_SIDEREAL</code>)</td>
+<td>Vedic astrology is sidereal (fixed-star based), not tropical</td>
+</tr>
+<tr>
+<td><strong>Nodes</strong></td>
+<td><strong>True Node</strong> for Rahu; Ketu = Rahu + 180°</td>
+<td>KP/Parashara conventionally use the lunar nodes</td>
+</tr>
+<tr>
+<td><strong>Speed</strong></td>
+<td>Longitude speed (deg/day) captured per planet</td>
+<td>Drives <strong>Cheshta Bala</strong> &amp; retrograde detection</td>
+</tr>
+<tr>
+<td><strong>Declination</strong></td>
+<td>Equatorial declination (<code>FLG_EQUATORIAL</code>)</td>
+<td>Drives <strong>Ayana Bala</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ayanamsa</strong> (the sidereal–tropical offset) is system-specific:</p>
+<ul>
+<li><strong>KP chart → Krishnamurti ayanamsa</strong> (<code>SIDM_KRISHNAMURTI</code>)</li>
+<li><strong>Parashara chart → Lahiri ayanamsa</strong> (<code>SIDM_LAHIRI</code>)</li>
+</ul>
+<p>The two differ by only ≈ 6 arc-minutes, but that is enough to occasionally move a <strong>sub-lord</strong>
+across a boundary — which is exactly why KP needs its own ayanamsa.</p>
+<p><strong>Time handling.</strong> Local birth time is converted to UTC using the timezone offset, then to a
+Julian Day. The web/standalone front-ends capture the <strong>DST-aware</strong> offset automatically from the
+city's IANA timezone.</p>
+<hr />
+<h2 id="4-the-two-reference-frames-kp-and-parashara-charts">4. The two reference frames: KP and Parashara charts</h2>
+<p><code>compute_chart(...)</code> is called twice and returns two independent <code>Chart</code> objects:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>KP chart</th>
+<th>Parashara chart</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ayanamsa</td>
+<td>Krishnamurti</td>
+<td>Lahiri</td>
+</tr>
+<tr>
+<td>Houses</td>
+<td><strong>Placidus cusps</strong> (unequal, real cusp degrees)</td>
+<td><strong>Whole-sign</strong> (house = sign from the ascendant)</td>
+</tr>
+<tr>
+<td>Used for</td>
+<td>Significators, <strong>cuspal sub-lords</strong>, timing</td>
+<td>Dignity, yogas, vargas, <strong>Shadbala</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Placidus cusps</strong> are computed by Swiss Ephemeris (<code>houses_ex(..., b"P")</code>). They give each of the
+12 house cusps an exact degree, which KP needs because the <strong>sub-lord of the cusp degree</strong> is the
+deciding factor. The MC (10th cusp) is also stored for <strong>Dig Bala</strong>.</p>
+<p>Each planet record carries: sidereal longitude, sign, house, retrograde flag, <strong>speed</strong>,
+<strong>declination</strong>, and the full <strong>lordship chain</strong> (below).</p>
+<hr />
+<h2 id="5-lordship-chain-kp-sub-lords">5. Lordship chain &amp; KP sub-lords</h2>
+<p>Every longitude is decomposed into a chain used throughout the engine:</p>
+<pre><code>longitude → Sign (lord) → Nakshatra (star lord) → Sub-lord → Sub-sub-lord
+</code></pre>
+<ul>
+<li><strong>Sign lord</strong> — ruler of the 30° sign.</li>
+<li><strong>Nakshatra / star lord</strong> — ruler of the 13°20′ lunar mansion (one of the 9 Vimshottari lords).</li>
+<li><strong>Sub-lord</strong> — the nakshatra span is divided into <strong>9 unequal parts proportional to the
+  Vimshottari dasha years</strong> (Ketu 7, Venus 20, Sun 6, …), starting from the star lord. The part the
+  longitude falls in gives the sub-lord.</li>
+<li><strong>Sub-sub-lord</strong> — the same proportional division applied again <em>inside</em> the sub.</li>
+</ul>
+<p>This proportional sub-division (<code>_subdivide</code>) is the mathematical heart of KP. <strong>The sub-lord is
+considered the final deciding authority</strong> over the matters a planet/cusp signifies.</p>
+<hr />
+<h2 id="6-vimshottari-dasha-3-level-timing-engine">6. Vimshottari Dasha (3-level timing engine)</h2>
+<p>The Vimshottari dasha is the project's clock. It is anchored on the <strong>Moon's nakshatra at birth</strong>.</p>
+<ul>
+<li><strong>Cycle:</strong> 120 years, in the fixed order Ketu 7 → Venus 20 → Sun 6 → Moon 10 → Mars 7 →
+  Rahu 18 → Jupiter 16 → Saturn 19 → Mercury 17.</li>
+<li><strong>Balance at birth:</strong> how far the Moon has travelled through its nakshatra fixes the remaining
+  fraction of the first Mahadasha.</li>
+<li><strong>Three levels are built:</strong></li>
+<li><strong>Mahadasha (MD)</strong> — major period.</li>
+<li><strong>Antardasha (AD / Bhukti)</strong> — <code>MD_years × AD_years / 120</code>.</li>
+<li><strong>Pratyantardasha (PD)</strong> — <code>AD_years × PD_years / 120</code>.</li>
+<li>A "year" = <strong>365.25 days</strong>.</li>
+</ul>
+<p><code>find_running(tree, when)</code> returns the MD/AD/PD active on any date. <code>fructification_windows(...)</code>
+scans the tree for periods where the running lords are the <strong>significators</strong> of a set of houses —
+this is how every timeline in the app is produced (see §7).</p>
+<hr />
+<h2 id="7-kp-analysis-significators-cuspal-sub-lords">7. KP analysis — significators &amp; cuspal sub-lords</h2>
+<h3 id="71-four-step-significators-of-a-house">7.1 Four-step significators of a house</h3>
+<p>For any house H, planets are graded (strongest first):</p>
+<table>
+<thead>
+<tr>
+<th>Grade</th>
+<th>Rule</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>Planets in the <strong>star (nakshatra) of an occupant</strong> of H</td>
+<td>Strongest signification</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td><strong>Occupants</strong> of H</td>
+<td>Strong</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Planets in the <strong>star of the lord</strong> of H</td>
+<td>Moderate</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>The <strong>lord</strong> of H</td>
+<td>Present but weakest</td>
+</tr>
+</tbody>
+</table>
+<p>Nodes (Rahu/Ketu) occupying a house are added as strong significators, and a node represents
+(in priority) its <strong>conjoined planets → star lord → sign lord</strong>.</p>
+<h3 id="72-houses-signified-by-a-planet">7.2 Houses signified by a planet</h3>
+<p>A planet signifies the houses <strong>occupied and owned by its star lord</strong> (strongest), plus the house
+it occupies and the houses it owns. This is what <code>houses_signified_by</code> returns and is reused for
+cuspal-sub-lord judgement.</p>
+<h3 id="73-cuspal-sub-lord-csl-the-decider">7.3 Cuspal Sub-Lord (CSL) — the decider</h3>
+<p>In KP, <strong>whether a matter happens at all</strong> is decided by the <strong>sub-lord of the relevant house
+cusp</strong>. The engine asks: <em>does the CSL signify the positive houses for this matter, and avoid the
+negative ones?</em></p>
+<table>
+<thead>
+<tr>
+<th>Matter</th>
+<th>Cusps examined</th>
+<th>Positive houses</th>
+<th>Cautionary houses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Education</strong></td>
+<td>4, 5, 9, 11</td>
+<td>4, 5, 9, 11</td>
+<td>3, 8, 12</td>
+</tr>
+<tr>
+<td><strong>Higher education</strong></td>
+<td>9 &amp; 11</td>
+<td>9, 11, 4, 5</td>
+<td>8, 12, 3</td>
+</tr>
+<tr>
+<td><strong>Career (promise)</strong></td>
+<td>10, 6, 2, 11</td>
+<td>2, 6, 10, 11</td>
+<td>5, 8, 12</td>
+</tr>
+<tr>
+<td><strong>Job vs business</strong></td>
+<td>10 &amp; 6 CSL links</td>
+<td>6 → job, 7 → business</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>A house's matter is judged <strong>favorable</strong> when its CSL signifies ≥ 1 positive house and at least as
+many positive as cautionary houses. Education is "promised" when ≥ 2 of the four CSLs are
+favorable; the same threshold applies to career.</p>
+<h3 id="74-strong-significators-for-timing">7.4 Strong significators (for timing)</h3>
+<p><code>strong_significators(houses)</code> = grade A/B significators <strong>plus</strong> the cuspal sub-lords of those
+houses. These focused planets are what the dasha scan looks for when timing an event (§14, §15).</p>
+<hr />
+<h2 id="8-parashara-analysis-dignities-house-lords-yogas">8. Parashara analysis — dignities, house lords, yogas</h2>
+<h3 id="81-planetary-dignity-a-01-strength-score">8.1 Planetary dignity (a 0–1 strength score)</h3>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Score</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exalted</td>
+<td>1.00</td>
+<td>Jupiter in Cancer</td>
+</tr>
+<tr>
+<td>Moolatrikona</td>
+<td>0.90</td>
+<td>Mars in Aries</td>
+</tr>
+<tr>
+<td>Own sign</td>
+<td>0.85</td>
+<td>Mercury in Gemini</td>
+</tr>
+<tr>
+<td>Friendly sign</td>
+<td>0.65</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Neutral sign</td>
+<td>0.50</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Enemy sign</td>
+<td>0.30</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Debilitated</td>
+<td>0.10</td>
+<td>Mercury in Pisces</td>
+</tr>
+</tbody>
+</table>
+<p>Friendship uses the natural-relationship table; nodes act through their dispositor (0.5).</p>
+<h3 id="82-house-lord-placement">8.2 House-lord placement</h3>
+<p>For the education houses (2, 4, 5, 9) and career houses (2, 6, 7, 10, 11), the engine records
+<strong>which house and sign each lord occupies</strong> and its dignity. Lords falling in supportive houses
+(kendras 1/4/7/10, trikonas 1/5/9, plus 2 &amp; 11) strengthen the matter.</p>
+<h3 id="83-yogas-detected">8.3 Yogas detected</h3>
+<table>
+<thead>
+<tr>
+<th>Yoga</th>
+<th>Condition</th>
+<th>Bearing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budha-Aditya</strong></td>
+<td>Sun + Mercury together</td>
+<td>Intellect, communication</td>
+</tr>
+<tr>
+<td><strong>Gaja-Kesari</strong></td>
+<td>Jupiter in a kendra from the Moon</td>
+<td>Wisdom, repute</td>
+</tr>
+<tr>
+<td><strong>Saraswati</strong></td>
+<td>Mercury, Jupiter, Venus in kendra/trikona/2nd</td>
+<td>Learning, arts, eloquence</td>
+</tr>
+<tr>
+<td><strong>Pancha-Mahapurusha</strong> (Ruchaka/Bhadra/Hamsa/Malavya/Sasa)</td>
+<td>A planet exalted/own in a kendra</td>
+<td>Leadership in its domain</td>
+</tr>
+<tr>
+<td><strong>Dhana</strong></td>
+<td>2nd/11th lords linked to 2/5/9/10/11</td>
+<td>Earning</td>
+</tr>
+<tr>
+<td><strong>Raja</strong></td>
+<td>A kendra lord conjoined a trikona lord</td>
+<td>Rise in status</td>
+</tr>
+</tbody>
+</table>
+<p>Education uses Saraswati / Budha-Aditya / Gaja-Kesari; career uses Raja / Dhana / Mahapurusha.</p>
+<hr />
+<h2 id="9-divisional-charts-vargas">9. Divisional charts (Vargas)</h2>
+<p>Divisional charts refine the rasi (D-1). Each is built by <code>build_varga</code> with <strong>whole-sign houses
+from the divisional ascendant</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Varga</th>
+<th>Name</th>
+<th>Role in this app</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>D-9</strong></td>
+<td>Navamsa</td>
+<td>Overall strength; <strong>vargottama</strong> = same sign in D-1 &amp; D-9 (extra strong)</td>
+</tr>
+<tr>
+<td><strong>D-10</strong></td>
+<td>Dasamsa</td>
+<td><strong>Career varga</strong> — its 10th house/lord &amp; occupants describe the profession</td>
+</tr>
+<tr>
+<td><strong>D-24</strong></td>
+<td>Chaturvimsamsa (Siddhamsa)</td>
+<td><strong>Education varga</strong> — Mercury/Jupiter &amp; the learning houses (1/4/5/9) gauge academic capacity</td>
+</tr>
+<tr>
+<td>D-2, D-3, D-7, D-12, D-30</td>
+<td>Hora, Drekkana, Saptamsa, Dwadasamsa, Trimsamsa</td>
+<td>Used inside <strong>Saptavargaja Bala</strong> (§10)</td>
+</tr>
+</tbody>
+</table>
+<p>Each varga analysis produces a <strong>strength score (0–1)</strong> and a set of <strong>field planets</strong> that are fed,
+weighted by that strength, into the recommendation engine.</p>
+<hr />
+<h2 id="10-shadbala-six-fold-planetary-strength">10. Shadbala — six-fold planetary strength</h2>
+<p>Shadbala is computed for the <strong>seven classical grahas</strong> (Sun…Saturn) on the Parashara chart.
+Strengths are in <strong>virupas</strong> (60 virupas = 1 <strong>rupa</strong>). The six balas:</p>
+<h3 id="101-sthana-bala-positional">10.1 Sthana Bala (positional)</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>How computed</th>
+<th>Max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Uccha</strong></td>
+<td>Angular distance from the planet's debilitation point ÷ 3 (0 at debilitation, 60 at exaltation)</td>
+<td>60</td>
+</tr>
+<tr>
+<td><strong>Saptavargaja</strong></td>
+<td>Dignity across <strong>7 vargas</strong> (D-1,2,3,7,9,12,30) via compound friendship: Moolatrikona 45 / Own 30 / Great-friend 22.5 / Friend 15 / Neutral 7.5 / Enemy 3.75 / Great-enemy 1.875</td>
+<td>315</td>
+</tr>
+<tr>
+<td><strong>Ojhayugma</strong></td>
+<td>Correct odd/even sign in Rasi &amp; Navamsa (15 each)</td>
+<td>30</td>
+</tr>
+<tr>
+<td><strong>Kendradi</strong></td>
+<td>Kendra 60 / Panaphara 30 / Apoklima 15</td>
+<td>60</td>
+</tr>
+<tr>
+<td><strong>Drekkana</strong></td>
+<td>Male planets in 1st decanate, neuters in 2nd, females in 3rd → 15</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<h3 id="102-dig-bala-directional">10.2 Dig Bala (directional)</h3>
+<p>Each planet is strong in one cardinal house and powerless in the opposite. Dig Bala = angular
+distance from the "powerless point" ÷ 3.</p>
+<table>
+<thead>
+<tr>
+<th>Strong in</th>
+<th>Powerless at</th>
+<th>Planets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10th (MC)</td>
+<td>4th (Nadir)</td>
+<td>Sun, Mars</td>
+</tr>
+<tr>
+<td>4th (Nadir)</td>
+<td>10th (MC)</td>
+<td>Moon, Venus</td>
+</tr>
+<tr>
+<td>1st (Asc)</td>
+<td>7th (Desc)</td>
+<td>Jupiter, Mercury</td>
+</tr>
+<tr>
+<td>7th (Desc)</td>
+<td>1st (Asc)</td>
+<td>Saturn</td>
+</tr>
+</tbody>
+</table>
+<h3 id="103-kala-bala-temporal">10.3 Kala Bala (temporal)</h3>
+<table>
+<thead>
+<tr>
+<th>Sub-bala</th>
+<th>Basis</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nathonnatha</strong></td>
+<td>Sun's hour angle (day vs night strength)</td>
+<td>Mercury always 60</td>
+</tr>
+<tr>
+<td><strong>Paksha</strong></td>
+<td>Moon–Sun elongation (benefics wax-strong, malefics dark-strong)</td>
+<td>Moon's value doubled</td>
+</tr>
+<tr>
+<td><strong>Tribhaga</strong></td>
+<td>Ruler of the current third of day/night</td>
+<td>Jupiter always 60</td>
+</tr>
+<tr>
+<td><strong>Vara</strong></td>
+<td>Lord of the <strong>weekday</strong> of birth</td>
+<td>+45</td>
+</tr>
+<tr>
+<td><strong>Hora</strong></td>
+<td>Lord of the <strong>planetary hour</strong> (Chaldean order from sunrise)</td>
+<td>+60</td>
+</tr>
+<tr>
+<td><strong>Masa / Abda</strong></td>
+<td>Weekday lord of the solar <strong>month / year</strong> ingress (found by ephemeris search)</td>
+<td>+30 / +15</td>
+</tr>
+<tr>
+<td><strong>Ayana</strong></td>
+<td><strong>Declination</strong>: <code>1.2766 × (23.45 ± δ)</code>; north-preferring planets add δ, Moon/Saturn subtract</td>
+<td>uses declination</td>
+</tr>
+</tbody>
+</table>
+<h3 id="104-cheshta-bala-motional-speed-direction">10.4 Cheshta Bala (motional — speed &amp; direction)</h3>
+<table>
+<thead>
+<tr>
+<th>Planet</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sun</td>
+<td>= its Ayana Bala</td>
+</tr>
+<tr>
+<td>Moon</td>
+<td>= its Paksha Bala</td>
+</tr>
+<tr>
+<td>Mars…Saturn</td>
+<td><strong>Retrograde → 60</strong> (max); otherwise scaled by slowness <code>(1.5 − speed/mean)/1.5 × 60</code> (slow/near-stationary scores high, fast-direct low)</td>
+</tr>
+</tbody>
+</table>
+<p>This is precisely where <strong>motion speed and direction enter the strength model</strong> — a retrograde or
+near-stationary planet is treated as motionally powerful.</p>
+<h3 id="105-naisargika-natural-fixed">10.5 Naisargika (natural, fixed)</h3>
+<p>Sun 60, Moon 51.43, Venus 42.86, Jupiter 34.29, Mercury 25.71, Mars 17.14, Saturn 8.57.</p>
+<h3 id="106-drik-bala-aspectual">10.6 Drik Bala (aspectual)</h3>
+<p>Benefic full/special aspects on the planet add +15, malefic −15, divided by 4.</p>
+<h3 id="107-total-sufficiency-and-ishtakashta">10.7 Total, sufficiency, and Ishta/Kashta</h3>
+<pre><code>total_virupa = Sthana + Dig + Kala + Cheshta + Naisargika + Drik
+rupas        = total_virupa / 60
+ratio        = rupas / required          (required: Su 6.5, Mo 6, Ma 5, Me 7, Ju 6.5, Ve 5.5, Sa 5)
+sufficient   = rupas ≥ required
+Ishta phala  = √(Uccha × Cheshta)        (capacity to give GOOD results)
+Kashta phala = √((60−Uccha) × (60−Cheshta))   (capacity to give DIFFICULT results)
+benefic      = Ishta ≥ Kashta
+</code></pre>
+<h3 id="108-strength-factor-how-shadbala-influences-advice">10.8 Strength factor (how Shadbala influences advice)</h3>
+<pre><code>strength_factor = clamp( 0.6 + 0.6 × min(ratio,1.6)/1.6  (+0.1 if benefic)  (+0.05 if retrograde),  0.6 … 1.4 )
+</code></pre>
+<p>Every planet's contribution to a recommendation is <strong>multiplied by this 0.6–1.4 factor</strong> — so a
+strong, Ishta planet pulls its fields up and a weak/Kashta planet is discounted.</p>
+<hr />
+<h2 id="11-bhava-bala-ishtakashta-phala">11. Bhava Bala &amp; Ishta/Kashta phala</h2>
+<p><strong>Bhava Bala (house strength)</strong> = <code>Bhavadhipati (Shadbala of the house lord, virupa)</code> +
+<code>0.10 × Σ(Shadbala of occupants)</code> + <code>net aspect (benefic +20 / malefic −20)</code>, expressed in rupas
+and labelled <em>weak / moderate / strong / very strong</em>. The education group (4/5/9) and career
+group (2/10/11) are summarised in the assessment.</p>
+<p><strong>Dasha-phala timeline</strong> — each upcoming Mahadasha (and the current MD's Antardashas) is labelled
+from its lord's Ishta/Kashta:</p>
+<table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>Condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Strongly benefic</strong></td>
+<td>Ishta ≥ Kashta and Ishta ≥ 40</td>
+</tr>
+<tr>
+<td><strong>Benefic / supportive</strong></td>
+<td>Ishta ≥ Kashta</td>
+</tr>
+<tr>
+<td><strong>Challenging</strong></td>
+<td>Kashta − Ishta &gt; 15</td>
+</tr>
+<tr>
+<td><strong>Mixed</strong></td>
+<td>otherwise</td>
+</tr>
+<tr>
+<td><strong>Variable</strong></td>
+<td>node (no Shadbala)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-education-assessment-parameters-influence">12. Education assessment — parameters &amp; influence</h2>
+<p><code>advise_education(kp_chart, par_chart, shadbala)</code> combines four weighted streams of "field planets".</p>
+<h3 id="121-what-is-collected-and-how-it-is-weighted">12.1 What is collected and how it is weighted</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Weight</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KP field planets (significators of <strong>4 &amp; 5</strong>)</td>
+<td><strong>1.0</strong></td>
+<td><code>kp.judge_education</code></td>
+</tr>
+<tr>
+<td>KP significators of <strong>4, 5, 9, 11</strong> (top 4)</td>
+<td><strong>0.6</strong></td>
+<td><code>kp.judge_education</code></td>
+</tr>
+<tr>
+<td>Parashara field planets (Mercury/Jupiter karakas + 4th/5th lords)</td>
+<td><strong>1.0</strong></td>
+<td><code>parashara.judge_education</code></td>
+</tr>
+<tr>
+<td><strong>D-24</strong> education-varga indicators</td>
+<td><strong>0.6 + 0.6 × D24-strength</strong></td>
+<td><code>parashara.analyse_siddhamsa</code></td>
+</tr>
+</tbody>
+</table>
+<p>Within each list, the <em>n</em>-th planet gets a small positional bonus <code>× (1 − 0.12 n)</code>. Then <strong>every
+planet score is multiplied by its Shadbala strength factor</strong> (§10.8).</p>
+<h3 id="122-from-planets-to-streams">12.2 From planets to streams</h3>
+<p>Each scored planet is expanded into the <strong>education streams it governs</strong> (e.g. Mercury → IT,
+commerce, accountancy, journalism; Jupiter → law, economics, teaching, finance). The 4th-house
+<strong>sign</strong> adds a light temperament nudge (+0.4) to matching streams. The top 6 streams are returned.</p>
+<h3 id="123-verdicts">12.3 Verdicts</h3>
+<ul>
+<li><strong>Education promised</strong> — from the KP CSL test on 4/5/9/11 (§7.3).</li>
+<li><strong>Higher education likely</strong> — KP 9th &amp; 11th CSLs both favorable.</li>
+<li><strong>Academic strength</strong> — <code>0.65 × Parashara education score + 0.35 × (Shadbala of Mercury &amp; Jupiter, capped)</code> → <em>Strong / Above average / Moderate</em>.</li>
+</ul>
+<h3 id="124-influence-summary">12.4 Influence summary</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Effect on the result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KP CSL of 4/5/9/11</td>
+<td>Decides <strong>whether</strong> education (and higher education) is promised</td>
+</tr>
+<tr>
+<td>KP significators of 4/5</td>
+<td>Push their <strong>streams</strong> up the ranking</td>
+</tr>
+<tr>
+<td>Mercury &amp; Jupiter dignity + Shadbala</td>
+<td>Set <strong>academic strength</strong>; weak ones trigger a remedy note</td>
+</tr>
+<tr>
+<td>4th/5th lords</td>
+<td>Add their streams; placement affects strength</td>
+</tr>
+<tr>
+<td>D-24 strength &amp; field planets</td>
+<td>Reinforce streams in proportion to divisional strength</td>
+</tr>
+<tr>
+<td>Shadbala strength factor</td>
+<td>Re-weights every planet (0.6–1.4×)</td>
+</tr>
+<tr>
+<td>4th-house sign</td>
+<td>Light temperament nudge to matching streams</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13-career-assessment-parameters-influence">13. Career assessment — parameters &amp; influence</h2>
+<p><code>advise_career(kp_chart, par_chart, shadbala)</code> mirrors education but on the career houses.</p>
+<h3 id="131-field-planet-sources-weights">13.1 Field-planet sources &amp; weights</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KP field planets (significators of <strong>10 &amp; 6</strong>)</td>
+<td><strong>1.0</strong></td>
+</tr>
+<tr>
+<td>KP significators of <strong>2, 6, 10, 11</strong> (top 4)</td>
+<td><strong>0.6</strong></td>
+</tr>
+<tr>
+<td>Parashara field planets (planets in 10th + 10th lord + strongest karaka)</td>
+<td><strong>1.1</strong></td>
+</tr>
+<tr>
+<td><strong>D-10</strong> career-varga indicators</td>
+<td><strong>0.7 + 0.7 × D10-strength</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Again positional bonus <code>× (1 − 0.12 n)</code>, then × Shadbala strength factor; expanded into the
+<strong>career fields</strong> each planet governs and ranked (10th-house sign nudges matching fields).</p>
+<h3 id="132-earning-rating-three-independent-votes-averaged">13.2 Earning rating (three independent votes, averaged)</h3>
+<table>
+<thead>
+<tr>
+<th>Vote</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KP earning strength</td>
+<td>2nd/11th significators + 11th CSL → Strong=3 / Good=2 / Moderate=1</td>
+</tr>
+<tr>
+<td>Parashara wealth score</td>
+<td>2nd &amp; 11th lord placement, Jupiter/Venus dignity, Dhana yoga → 3/2/1</td>
+</tr>
+<tr>
+<td><strong>Shadbala of wealth-givers</strong></td>
+<td>average ratio of 2nd lord, 11th lord, Jupiter, Venus → ≥1.15 = 3, ≥0.9 = 2, else 1</td>
+</tr>
+</tbody>
+</table>
+<p><code>combined = mean of the three</code> → <strong>High / Good / Moderate</strong> earning.</p>
+<h3 id="133-satisfaction-rating">13.3 Satisfaction rating</h3>
+<p><code>0.5 × (5th &amp; 9th lord alignment) + 0.5 × (average dignity of the leading career planets)</code>. If ≥ 2
+of the top career planets are <strong>Ishta</strong> in Shadbala, the note is upgraded. → <em>High / Good /
+Variable</em>. This is the engine's reading of <strong>meaning/contentment</strong>, distinct from earning.</p>
+<h3 id="134-job-vs-business-consensus-of-both-systems">13.4 Job vs business (consensus of both systems)</h3>
+<ul>
+<li><strong>KP:</strong> 10th &amp; 6th CSL linked to the <strong>6th</strong> → service; to the <strong>7th</strong> → business.</li>
+<li><strong>Parashara:</strong> 10th sign nature, planets in the 10th, and 6th-lord vs 7th-lord strength.</li>
+<li>The two verdicts are <strong>reconciled</strong>: agreement → that mode; KP-job + Parashara-business →
+  <em>"salaried start then independent venture"</em>; etc.</li>
+</ul>
+<h3 id="135-influence-summary">13.5 Influence summary</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Effect on the result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KP CSL of 2/6/10/11</td>
+<td>Whether career &amp; earning are <strong>promised</strong>; job-vs-business mode</td>
+</tr>
+<tr>
+<td>Planets in 10th, 10th lord</td>
+<td>Strongest colour on the <strong>fields</strong> (weight 1.1)</td>
+</tr>
+<tr>
+<td>D-10 strength &amp; planets</td>
+<td>Reinforce fields; can shift the ranking markedly</td>
+</tr>
+<tr>
+<td>2nd/11th lords, Jupiter/Venus, Dhana yoga</td>
+<td><strong>Earning</strong> rating</td>
+</tr>
+<tr>
+<td>5th/9th lords + career-planet dignity &amp; Ishta</td>
+<td><strong>Satisfaction</strong> rating</td>
+</tr>
+<tr>
+<td>Shadbala strength factor &amp; strongest planet</td>
+<td>Re-weights fields; strongest planet's periods highlighted</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="14-best-periods-overlay-kp-windows-dasha-phala-age">14. Best Periods overlay (KP windows × dasha phala × age)</h2>
+<p><code>_best_periods(...)</code> answers <em>"when are the best windows for education/career growth?"</em> by
+<strong>overlaying two layers</strong>:</p>
+<ol>
+<li><strong>KP fructification windows</strong> — scan the 3-level dasha for periods where a <strong>majority of the
+   running MD/AD/PD lords are strong significators</strong> of the relevant houses (education 4/9/11,
+   career 2/10/11).</li>
+<li><strong>Dasha-phala quality</strong> — the Ishta/Kashta verdict of the Mahadasha running at that window.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Window quality</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Prime</strong></td>
+<td>Benefic dasha era <strong>and</strong> active significators</td>
+</tr>
+<tr>
+<td><strong>Favourable</strong></td>
+<td>Benefic dasha era</td>
+</tr>
+<tr>
+<td><strong>Workable</strong></td>
+<td>Significators active but the era needs effort</td>
+</tr>
+</tbody>
+</table>
+<h3 id="age-awareness">Age awareness</h3>
+<p>The native's <strong>age</strong> is taken into account: <strong>career windows are only sought from working age
+(~16+)</strong>, and every window is tagged with the age range and life-stage (Student years → Early
+career → Career building → Career peak → Senior → Retirement). So a child's chart shows career
+windows beginning at 16, while education windows start now.</p>
+<hr />
+<h2 id="15-faq-engine-verdicts-timelines">15. FAQ engine — verdicts &amp; timelines</h2>
+<p>Eleven common questions are answered the way an astrologer would — a <strong>verdict</strong> from the KP
+promise cross-checked with Parashara, plus a <strong>3-level dasha timeline</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>FAQs</th>
+<th>Fructification houses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Education</td>
+<td>higher education, best study time, study abroad, competitive exams</td>
+<td>4/9/11, 4/5/11, 9/12, 6/10/11</td>
+</tr>
+<tr>
+<td>Career</td>
+<td>when a job, government job, job vs business, promotion, career change, foreign career, income growth</td>
+<td>6/10/11, 1/6/10, 7/10/11, 2/10/11, 9/10/6, 7/10/12, 2/11</td>
+</tr>
+</tbody>
+</table>
+<p>Each timeline window is a precise <strong>MD–AD–PD</strong> band with start/end dates, chosen because a majority
+of those three running lords are significators of the question's houses.</p>
+<hr />
+<h2 id="16-transit-gochar-triggers">16. Transit (Gochar) triggers</h2>
+<p>Dashas show what is <em>promised</em>; transits confirm when it <em>matures</em>. The engine reads the <strong>slow
+planets</strong> (Jupiter, Saturn, Rahu, Ketu) for the current date and reports:</p>
+<ul>
+<li>Which natal house each transits (from Lagna and from the Moon).</li>
+<li>The <strong>Jupiter + Saturn "double transit"</strong> over education (4/5/9) and career (10/6/11) houses — a
+  classic trigger for major events.</li>
+<li><strong>Sade Sati</strong> status of Saturn relative to the natal Moon.</li>
+</ul>
+<hr />
+<h2 id="17-remedial-suggestions">17. Remedial suggestions</h2>
+<p>For the planets that <strong>matter to the domain</strong> (education karakas Mercury/Jupiter; career karakas
+Sun/Saturn/Mercury/Jupiter, plus the strong KP significators) and are <strong>weak</strong> (debilitated, enemy
+sign, or low dignity), a traditional, low-risk <strong>upaya</strong> is suggested: presiding deity, mantra,
+charity, fasting day, a gemstone caution, and a lifestyle measure. If all key planets are strong, a
+supportive measure for the lead karaka is offered instead.</p>
+<hr />
+<h2 id="18-the-standalone-browser-edition">18. The standalone browser edition</h2>
+<p><code>docs/index.html</code> is a <strong>single self-contained file</strong> that runs the whole engine <strong>client-side</strong>:</p>
+<ul>
+<li>Planetary positions come from the <strong>astronomy-engine</strong> library (no data files); the same
+  sidereal maths, ayanamsa model and Placidus algorithm are re-implemented in JavaScript.</li>
+<li>It was <strong>validated against the Python/Swiss-Ephemeris build to ≈ 0.004°</strong> on planet longitudes,
+  with Placidus cusp signs matching exactly.</li>
+<li>The full KP + Parashara + Vimshottari + Varga + Shadbala + Bhava-Bala + best-periods logic is
+  ported, so the browser report matches the server report (the only deliberate difference is the
+  use of the <strong>mean node</strong> for Rahu/Ketu, which can shift a node's sub-lord slightly).</li>
+<li>City search uses a live geocoding lookup and computes the <strong>DST-aware</strong> timezone offset for the
+  birth date.</li>
+</ul>
+<hr />
+<h2 id="19-worked-example-reproducibility">19. Worked example &amp; reproducibility</h2>
+<p>Reference birth: <strong>15 Aug 1990, 10:30, New Delhi (28.61 N, 77.21 E, +5.5)</strong>.</p>
+<ul>
+<li><strong>KP Lagna</strong> Virgo (sub-lord Saturn); <strong>Parashara Lagna</strong> Virgo.</li>
+<li><strong>Shadbala</strong> (rupas, strongest first): Mars 8.26, Sun 8.11, Jupiter 7.85, Mercury 7.50,
+  Saturn 7.03, Moon 6.83, Venus 6.78 — all above their required minimum.</li>
+<li>Sanity checks that confirm the maths: exalted <strong>Jupiter → Uccha 59.8/60</strong>; retrograde
+  <strong>Saturn → Cheshta 60</strong>; <strong>Vara Bala → Mercury 45</strong> because 15 Aug 1990 was a <strong>Wednesday</strong>.</li>
+</ul>
+<p>Run it yourself:</p>
+<pre><code class="language-bash">pip install -r requirements.txt
+python -m astro_adviser.cli --name &quot;Asha&quot; --date 1990-08-15 --time 10:30 \
+    --lat 28.6139 --lon 77.2090 --tz 5.5
+python -m pytest      # 74 tests covering every module above
+</code></pre>
+<p>The engine is fully <strong>deterministic</strong>: identical inputs always yield identical output, which is why
+the test-suite assertions (exact rupas, dasha boundaries, sub-lords) are stable.</p>
+<hr />
+<h2 id="20-parameter-influence-master-summary">20. Parameter influence — master summary</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Computed in</th>
+<th>Primarily influences</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ayanamsa (KP vs Lahiri)</td>
+<td>ephemeris</td>
+<td>Sub-lords &amp; cusp degrees → all KP verdicts</td>
+</tr>
+<tr>
+<td>Cuspal sub-lord (CSL)</td>
+<td>kp</td>
+<td><strong>Whether</strong> education/career is promised; job vs business</td>
+</tr>
+<tr>
+<td>KP four-step significators</td>
+<td>kp</td>
+<td><strong>Field ranking</strong> + <strong>timing</strong> of every window</td>
+</tr>
+<tr>
+<td>Planetary dignity</td>
+<td>parashara</td>
+<td>Academic strength, satisfaction, wealth</td>
+</tr>
+<tr>
+<td>Yogas</td>
+<td>parashara</td>
+<td>Strength notes; Dhana→earning, Raja→status</td>
+</tr>
+<tr>
+<td>D-9 / D-10 / D-24</td>
+<td>varga/parashara</td>
+<td>Reinforce streams/fields; vargottama strength</td>
+</tr>
+<tr>
+<td>Shadbala (6 balas)</td>
+<td>shadbala</td>
+<td><strong>Re-weights every planet</strong> (0.6–1.4×); earning vote</td>
+</tr>
+<tr>
+<td>— speed &amp; direction</td>
+<td>shadbala (Cheshta)</td>
+<td>Retrograde/slow planets gain motional strength</td>
+</tr>
+<tr>
+<td>— declination</td>
+<td>shadbala (Ayana)</td>
+<td>North/south-preferring strength</td>
+</tr>
+<tr>
+<td>Bhava Bala</td>
+<td>shadbala</td>
+<td>House-group strength (education 4/5/9, career 2/10/11)</td>
+</tr>
+<tr>
+<td>Ishta / Kashta phala</td>
+<td>shadbala</td>
+<td>Satisfaction; <strong>dasha-period quality</strong></td>
+</tr>
+<tr>
+<td>Vimshottari dasha (3-level)</td>
+<td>dasha</td>
+<td><strong>All timelines</strong>; best-period windows</td>
+</tr>
+<tr>
+<td>Native's age</td>
+<td>adviser</td>
+<td>Filters career windows to working age; life-stage tags</td>
+</tr>
+<tr>
+<td>Transits</td>
+<td>transits</td>
+<td>Confirmation triggers for promised results</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="21-limitations-disclaimer">21. Limitations &amp; disclaimer</h2>
+<ul>
+<li>Shadbala has <strong>minor school-to-school variations</strong>; this implementation follows BPHS conventions
+  with documented practical choices for sub-balas that need sunrise/ingress data.</li>
+<li>City timezone offsets in the browser use the IANA database (DST-aware); historical pre-1970
+  offsets may differ by minutes in rare cases.</li>
+<li>The browser edition uses the <strong>mean lunar node</strong>; the server uses the <strong>true node</strong>.</li>
+<li>This utility is intended for <strong>guidance and self-reflection</strong>. It is <strong>not</strong> a substitute for
+  professional educational, career, financial, medical or legal advice.</li>
+</ul>
+<hr />
+<p><em>Developed by Dr. Anil Sabaji · email: anilsabaji@gmail.com</em></p>
+<p class="foot">Developed by Dr. Anil Sabaji &middot; email: anilsabaji@gmail.com</p>
+</div>
+</body>
+</html>

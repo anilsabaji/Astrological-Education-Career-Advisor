@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -224,6 +224,16 @@ def index(request: Request):
         {"cities": sorted(CITIES.keys()), "cities_json": json.dumps(CITIES),
          "usage_count": _read_counter()}
     )
+
+
+@app.get("/manual", response_class=HTMLResponse)
+def manual():
+    """Serve the rendered Technical Manual (docs/manual.html)."""
+    f = BASE / "docs" / "manual.html"
+    if f.exists():
+        return FileResponse(f)
+    raise HTTPException(status_code=404,
+                        detail="Manual not built. Run standalone/build_manual.py.")
 
 
 @app.post("/report", response_class=HTMLResponse)

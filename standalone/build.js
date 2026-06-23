@@ -30,6 +30,8 @@ ${css}
     systems, <strong>3-level Vimshottari dashas</strong> (Mahadasha &rarr; Antardasha &rarr; Pratyantardasha) and the
     <strong>divisional charts</strong> (D-9, D-10 career, D-24 education). Get field recommendations for good
     <em>earning</em> and <em>satisfaction</em>, timelines, FAQs, remedies and transit triggers &mdash; then print a colourful PDF.</p>
+    <p><a class="manual-link" href="manual.html" target="_blank" rel="noopener">&#128218; Read the Technical Manual</a>
+    &mdash; how the results are derived, the parameters considered, and how each one influences the outcome.</p>
   </section>
 
   <section class="card no-print" id="inputCard">
