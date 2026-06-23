@@ -76,7 +76,10 @@ hr{border:none;border-top:1px solid var(--line);margin:26px 0;}
 <body>
 <div class="bar"><div class="in">
   <span><span class="logo">&#9789;</span> <a href="index.html">&larr; Astro Adviser</a></span>
-  <button class="pdf-btn" onclick="window.print()">&#128424; Save / Print as PDF</button>
+  <span>
+    <a class="pdf-btn" href="TECHNICAL_MANUAL.pdf" download style="text-decoration:none;margin-right:8px;">&#11015; Download PDF</a>
+    <button class="pdf-btn" onclick="window.print()">&#128424; Save / Print as PDF</button>
+  </span>
 </div></div>
 <div class="wrap">
 __BODY__

@@ -13,6 +13,9 @@ astrologer**, each with a verdict and a dasha-based timeline.
 
 📘 **[Technical Manual](TECHNICAL_MANUAL.md)** — how the results are derived, the
 parameters considered, and how each one influences the outcome.
+Also available as a styled, printable web page (`docs/manual.html`) and a
+ready-to-download **[PDF](TECHNICAL_MANUAL.pdf)** (regenerate with
+`python standalone/build_manual_pdf.py`).
 
 ---
 

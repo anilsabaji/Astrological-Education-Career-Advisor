@@ -236,6 +236,17 @@ def manual():
                         detail="Manual not built. Run standalone/build_manual.py.")
 
 
+@app.get("/manual.pdf")
+def manual_pdf():
+    """Download the pre-rendered Technical Manual PDF."""
+    for f in (BASE / "docs" / "TECHNICAL_MANUAL.pdf", BASE / "TECHNICAL_MANUAL.pdf"):
+        if f.exists():
+            return FileResponse(f, media_type="application/pdf",
+                                filename="TECHNICAL_MANUAL.pdf")
+    raise HTTPException(status_code=404,
+                        detail="PDF not built. Run standalone/build_manual_pdf.py.")
+
+
 @app.post("/report", response_class=HTMLResponse)
 def report(
     request: Request,
