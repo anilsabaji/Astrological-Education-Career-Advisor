@@ -11,6 +11,9 @@ astrologer**, each with a verdict and a dasha-based timeline.
 
 > For guidance and self-reflection only.
 
+📘 **[Technical Manual](TECHNICAL_MANUAL.md)** — how the results are derived, the
+parameters considered, and how each one influences the outcome.
+
 ---
 
 ## Try it in your browser (no install)
