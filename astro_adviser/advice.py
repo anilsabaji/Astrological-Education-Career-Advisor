@@ -65,6 +65,7 @@ class CareerAdvice:
     varga_summary: str = ""
     shadbala_notes: List[str] = field(default_factory=list)
     shadbala: object = None
+    linked_fields: List[dict] = field(default_factory=list)  # education x career
 
 
 # ---------------------------------------------------------------------------

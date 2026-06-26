@@ -468,6 +468,22 @@ Variable*. This is the engine's reading of **meaning/contentment**, distinct fro
 | 5th/9th lords + career-planet dignity & Ishta | **Satisfaction** rating |
 | Shadbala strength factor & strongest planet | Re-weights fields; strongest planet's periods highlighted |
 
+### 13.6 Collective recommendation (Education × Career)
+
+The career output is finally **linked with the recommended education stream** to
+yield a more specific vocation. Each stream and field is classified into a broad
+domain (ARTS, MEDICINE, ENGINEERING, IT, FINANCE, LAW, …) and a curated
+`(education-domain × career-domain) → specialised role` table is consulted.
+
+> Example: education = **Fine arts** (ARTS) + career = **Medicine** (MEDICINE)
+> → **"Plastic & cosmetic surgeon"**. Mathematics + IT → *Data / computational
+> scientist*; Commerce + Law → *Corporate / tax lawyer*.
+
+The top two education streams are paired with the top two career fields
+(prioritising the highest-ranked of each); pairs not in the table fall back to a
+readable *"{Career} with a {Education} specialisation"*. This is the "collective
+result" shown under Career Guidance (`synthesis.py`).
+
 ---
 
 ## 14. Best Periods overlay (KP windows × dasha phala × age)

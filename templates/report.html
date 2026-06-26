@@ -261,6 +261,20 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
         {% endfor %}
     </ol>
 
+    {% if rep.career.linked_fields %}
+    <h3>&#11088; Collective recommendation (Education &times; Career)</h3>
+    <p class="sub">Your strongest education stream linked with your strongest career field gives a
+    more specific vocation.</p>
+    <ol class="reco-list linked-list">
+        {% for l in rep.career.linked_fields %}
+        <li>
+            <div class="reco-title">{{ l.title }}</div>
+            <div class="reco-meta">{{ l.education_field }} &nbsp;&times;&nbsp; {{ l.career_field }}</div>
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
     <div class="two-col">
         <div>
             <h4>Earning</h4>

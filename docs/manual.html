@@ -914,6 +914,20 @@ Variable</em>. This is the engine's reading of <strong>meaning/contentment</stro
 </tr>
 </tbody>
 </table>
+<h3 id="136-collective-recommendation-education-career">13.6 Collective recommendation (Education × Career)</h3>
+<p>The career output is finally <strong>linked with the recommended education stream</strong> to
+yield a more specific vocation. Each stream and field is classified into a broad
+domain (ARTS, MEDICINE, ENGINEERING, IT, FINANCE, LAW, …) and a curated
+<code>(education-domain × career-domain) → specialised role</code> table is consulted.</p>
+<blockquote>
+<p>Example: education = <strong>Fine arts</strong> (ARTS) + career = <strong>Medicine</strong> (MEDICINE)
+→ <strong>"Plastic &amp; cosmetic surgeon"</strong>. Mathematics + IT → <em>Data / computational
+scientist</em>; Commerce + Law → <em>Corporate / tax lawyer</em>.</p>
+</blockquote>
+<p>The top two education streams are paired with the top two career fields
+(prioritising the highest-ranked of each); pairs not in the table fall back to a
+readable <em>"{Career} with a {Education} specialisation"</em>. This is the "collective
+result" shown under Career Guidance (<code>synthesis.py</code>).</p>
 <hr />
 <h2 id="14-best-periods-overlay-kp-windows-dasha-phala-age">14. Best Periods overlay (KP windows × dasha phala × age)</h2>
 <p><code>_best_periods(...)</code> answers <em>"when are the best windows for education/career growth?"</em> by

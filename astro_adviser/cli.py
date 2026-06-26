@@ -78,6 +78,10 @@ def main(argv=None):
     print("  Recommended fields:")
     for i, r in enumerate(rep.career.fields, 1):
         print(f"    {i}. {r.title}  (drivers: {', '.join(r.drivers)})")
+    if rep.career.linked_fields:
+        print("  Collective recommendation (education x career):")
+        for l in rep.career.linked_fields:
+            print(f"    - {l['title']}  [{l['education_field']} x {l['career_field']}]")
     if rep.career.varga:
         v = rep.career.varga
         print(f"  Divisional chart ({v.name}): Lagna {v.asc_sign}, 10th "

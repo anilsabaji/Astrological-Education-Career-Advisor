@@ -14,7 +14,7 @@ import datetime as dt
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from . import advice, dasha, faq, remedies, transits
+from . import advice, dasha, faq, remedies, transits, synthesis
 from . import parashara as par
 from . import shadbala as sbmod
 from .ephemeris import Chart, compute_chart
@@ -95,6 +95,9 @@ def build_report(birth: BirthData, now: Optional[dt.datetime] = None) -> AdviceR
 
     education = advice.advise_education(kp_chart, par_chart, sb=shadbala)
     career = advice.advise_career(kp_chart, par_chart, sb=shadbala)
+    # Link the recommended education streams with the recommended career fields
+    # into specific "collective" vocations (e.g. Arts + Medicine -> Plastic surgeon).
+    career.linked_fields = synthesis.synthesize(education.streams, career.fields)
 
     ctx = faq.FAQContext(kp_chart, par_chart, tree, now)
     faqs = faq.answer_all(ctx)
@@ -374,6 +377,7 @@ def report_to_dict(rep: AdviceReport) -> dict:
             "divisional_chart": _varga(rep.career.varga),
             "divisional_summary": rep.career.varga_summary,
             "shadbala_notes": rep.career.shadbala_notes,
+            "linked_fields": rep.career.linked_fields,
         },
         "transits": {
             "as_of": rep.transit.as_of.isoformat(),

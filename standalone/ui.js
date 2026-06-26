@@ -317,6 +317,9 @@ function renderCareer(rep){const c=rep.career;
       <span class="badge good">Satisfaction: ${esc(c.satisfactionRating)}</span></div>
     <p class="lean"><strong>Job vs Business:</strong> ${esc(c.jobVsBusiness)}</p>
     <h3>Recommended career fields (earning + satisfaction)</h3>${recoList(c.fields)}
+    ${c.linkedFields&&c.linkedFields.length?`<h3>&#11088; Collective recommendation (Education &times; Career)</h3>
+      <p class="muted">Your strongest education stream linked with your strongest career field gives a more specific vocation.</p>
+      <ol class="reco-list">`+c.linkedFields.map(l=>`<li><div class="reco-title">${esc(l.title)}</div><div class="reco-meta">${esc(l.educationField)} &nbsp;&times;&nbsp; ${esc(l.careerField)}</div></li>`).join("")+`</ol>`:""}
     <div class="two-col"><div><h4>Earning</h4><p class="muted">${esc(c.earningExplanation)}</p></div>
       <div><h4>Satisfaction</h4><p class="muted">${esc(c.satisfactionExplanation)}</p></div></div>
     ${notesCols(c.kpNotes,"KP notes",c.parNotes,"Parashara notes",c.yogas,"Career yogas")}
