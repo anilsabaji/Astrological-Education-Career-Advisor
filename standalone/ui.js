@@ -144,7 +144,11 @@ function render(rep){
        ${String(b.hour).padStart(2,"0")}:${String(b.minute).padStart(2,"0")} &middot; ${esc(b.place)} &middot; UTC${b.tz>=0?"+":""}${b.tz}</p>
      <p class="meta"><strong>KP Lagna:</strong> ${kpA.sign} (sub-lord ${kpA.subLord}) &nbsp;|&nbsp;
        <strong>Parashara Lagna:</strong> ${parA.sign}</p>
-     <p class="print-only meta">Report generated ${new Date().toISOString().slice(0,10)} &middot; KP (Krishnamurti/Placidus) + Parashara (Lahiri/whole-sign)</p>`;
+     <p class="print-only meta">Report generated ${new Date().toISOString().slice(0,10)} &middot; KP (Krishnamurti/Placidus) + Parashara (Lahiri/whole-sign)</p>
+     <div class="head-actions no-print">
+       <button class="pdf-btn" onclick="downloadHTML()">&#11015; Download HTML</button>
+       <button class="pdf-btn" onclick="printReport()">&#128424; Download PDF</button>
+     </div>`;
 
   $("ovPanel").innerHTML=renderOverview(rep);
   $("eduPanel").innerHTML=renderEducation(rep);

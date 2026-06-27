@@ -280,6 +280,10 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
   border:1px solid var(--accent);border-radius:9px;padding:7px 14px;}
 .manual-link:hover{background:var(--accent);color:#1a1300;}
 
+/* report header download actions */
+.head-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.head-actions .pdf-btn{padding:9px 18px;font-size:.92rem;border-radius:10px;}
+
 </style>
 </head>
 <body>
@@ -334,7 +338,7 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
       <button class="tab" onclick="showTab('bestPanel',this)">Best Periods</button>
       <button class="tab" onclick="showTab('sbPanel',this)">Strength (Shadbala)</button>
       <button class="tab" onclick="showTab('chartPanel',this)">Charts</button>
-      <button class="tab" onclick="showTab('pdfPanel',this)">&#11015; Download</button>
+      <button class="tab" onclick="showTab('pdfPanel',this)">&#11015; Download Report</button>
     </div>
     <h2 class="print-only" style="margin:6px 0;">Complete Education &amp; Career Report</h2>
     <div class="tab-panel active" id="ovPanel"></div>
@@ -1621,7 +1625,11 @@ function render(rep){
        ${String(b.hour).padStart(2,"0")}:${String(b.minute).padStart(2,"0")} &middot; ${esc(b.place)} &middot; UTC${b.tz>=0?"+":""}${b.tz}</p>
      <p class="meta"><strong>KP Lagna:</strong> ${kpA.sign} (sub-lord ${kpA.subLord}) &nbsp;|&nbsp;
        <strong>Parashara Lagna:</strong> ${parA.sign}</p>
-     <p class="print-only meta">Report generated ${new Date().toISOString().slice(0,10)} &middot; KP (Krishnamurti/Placidus) + Parashara (Lahiri/whole-sign)</p>`;
+     <p class="print-only meta">Report generated ${new Date().toISOString().slice(0,10)} &middot; KP (Krishnamurti/Placidus) + Parashara (Lahiri/whole-sign)</p>
+     <div class="head-actions no-print">
+       <button class="pdf-btn" onclick="downloadHTML()">&#11015; Download HTML</button>
+       <button class="pdf-btn" onclick="printReport()">&#128424; Download PDF</button>
+     </div>`;
 
   $("ovPanel").innerHTML=renderOverview(rep);
   $("eduPanel").innerHTML=renderEducation(rep);

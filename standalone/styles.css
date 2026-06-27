@@ -271,3 +271,7 @@ button.ghost{background:transparent;color:var(--accent2);border:1px solid var(--
 .manual-link{display:inline-block;margin-top:6px;color:var(--accent);font-weight:700;text-decoration:none;
   border:1px solid var(--accent);border-radius:9px;padding:7px 14px;}
 .manual-link:hover{background:var(--accent);color:#1a1300;}
+
+/* report header download actions */
+.head-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.head-actions .pdf-btn{padding:9px 18px;font-size:.92rem;border-radius:10px;}
