@@ -113,15 +113,37 @@ astrologer. Mantra, charity and lifestyle measures are safe for everyone.</p>
         <strong>Parashara Lagna:</strong> {{ par_asc.sign }} ({{ par_ascdeg }}&deg;)
     </p>
     <a class="back" href="/">&larr; New chart</a>
+    <button class="pdf-btn no-print" onclick="downloadReportHTML()"
+            style="margin-left:14px;padding:9px 18px;font-size:.95rem;">&#11015; Download HTML</button>
     <button class="pdf-btn no-print" onclick="window.print()"
-            style="margin-left:14px;padding:9px 18px;font-size:.95rem;">&#128424; Save as PDF</button>
+            style="margin-left:8px;padding:9px 18px;font-size:.95rem;">&#128424; Download PDF</button>
     {% if usage_count %}
     <span class="usage-counter no-print">&#9889; Charts generated: <strong>{{ usage_count }}</strong></span>
     {% endif %}
-    <p class="hint no-print" style="margin-top:8px;">For best results choose
-    <strong>"Save as PDF"</strong> and enable <strong>"Background graphics"</strong> so the
-    vibrant colours are preserved.</p>
+    <p class="hint no-print" style="margin-top:8px;">PDF: choose <strong>"Save as PDF"</strong> and enable
+    <strong>"Background graphics"</strong> &mdash; the report is laid out centred on A4. HTML: a self-contained file you can reopen any time.</p>
 </section>
+
+<script>
+  function downloadReportHTML(){
+    var styles = Array.prototype.map.call(document.querySelectorAll('link[rel=stylesheet],style'), function(s){ return s.outerHTML; }).join('\n');
+    var main = document.querySelector('main.wrap') ? document.querySelector('main.wrap').cloneNode(true) : document.body.cloneNode(true);
+    Array.prototype.forEach.call(main.querySelectorAll('.no-print'), function(e){ e.remove(); });
+    var name = "{{ birth.name }}".replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'') || 'report';
+    var doc = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+      + '<title>Astro Adviser report</title>' + styles + '</head><body>'
+      + '<header class="site-header"><div class="wrap"><span class="brand"><span class="logo">&#9789;</span> Astro Adviser</span></div></header>'
+      + '<main class="wrap">' + main.innerHTML + '</main>'
+      + '<footer class="site-footer"><div class="wrap"><p class="dev-credit">Developed by Dr. Anil Sabaji, email: anilsabaji@gmail.com</p></div></footer>'
+      + '</body></html>';
+    var blob = new Blob([doc], {type:'text/html;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'astro_report_' + name + '.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  }
+</script>
 
 <!-- Running dasha -->
 <section class="card dasha-now">
